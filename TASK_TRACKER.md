@@ -139,16 +139,16 @@
   - [x] Show leads table using `st.dataframe()`
   - [x] Add "Download sample CSV" button with an example CSV template
 
-- [ ] `frontend/pages/02_campaign.py`
-  - [ ] Page title: "Run Campaign"
-  - [ ] `st.selectbox()` for tone: Friendly / Professional / Urgent
-  - [ ] `st.selectbox()` for channel: Telegram / Email
-  - [ ] `st.text_input()` for campaign name
-  - [ ] "Generate Message Previews" button — calls agent, shows first 5 generated messages
-  - [ ] For each preview: show variant A and variant B side by side
-  - [ ] "Launch Campaign" button — sends all messages
+- [x] `frontend/pages/02_campaign.py`
+  - [x] Page title: "Run Campaign"
+  - [x] `st.selectbox()` for tone: Friendly / Professional / Urgent
+  - [x] `st.selectbox()` for channel: Telegram / Email
+  - [x] `st.text_input()` for campaign name
+  - [x] "Generate Message Previews" button — calls agent, shows first 5 generated messages
+  - [x] For each preview: show variant A and variant B side by side
+  - [x] "Launch Campaign" button — sends all messages
   - [ ] Progress bar during sending
-  - [ ] Success summary: "X messages sent"
+  - [x] Success summary: "X messages sent"
 
 - [ ] `frontend/pages/03_dashboard.py`
   - [ ] Page title: "Analytics"
