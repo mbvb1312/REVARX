@@ -57,7 +57,7 @@ Day 1 Block 2: AI Message Generation (message_generator.py next)
 - [x] `seed_data.py` — insert 50 realistic dummy leads into DB
 
 #### Block 2: AI Message Generation
-- [ ] `agent_core/message_generator.py` — Gemini 2.0 Flash call using prompt in PROJECT_IDEA_README.md
+- [x] `agent_core/message_generator.py` — Gemini 2.0 Flash call using prompt in PROJECT_IDEA_README.md
 - [ ] `agent_core/ab_tester.py` — call message_generator twice per lead, label as variant A and B, store both in `messages` table
 - [ ] Manual test: run ab_tester on 3 seed leads, print outputs, confirm they look personalised
 

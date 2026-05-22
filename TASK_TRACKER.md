@@ -55,12 +55,12 @@
 
 ## 🤖 AGENT CORE
 
-- [ ] `agent_core/message_generator.py`
-  - [ ] Load Gemini API key from env
-  - [ ] `generate_message(lead, tone, channel)` function
-  - [ ] Use exact prompt template from PROJECT_IDEA_README.md
-  - [ ] Parse JSON response safely (handle malformed JSON)
-  - [ ] Return dict with `subject` and `message` keys
+- [x] `agent_core/message_generator.py`
+  - [x] Load Gemini API key from env
+  - [x] `generate_message(lead, tone, channel)` function
+  - [x] Use exact prompt template from PROJECT_IDEA_README.md
+  - [x] Parse JSON response safely (handle malformed JSON)
+  - [x] Return dict with `subject` and `message` keys
   - [ ] Test: call with 3 different leads, verify output quality
 
 - [ ] `agent_core/ab_tester.py`
