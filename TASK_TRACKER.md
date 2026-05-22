@@ -63,12 +63,12 @@
   - [x] Return dict with `subject` and `message` keys
   - [ ] Test: call with 3 different leads, verify output quality
 
-- [ ] `agent_core/ab_tester.py`
-  - [ ] `generate_ab_variants(lead_id, campaign_id, tone, channel)` function
-  - [ ] Call `generate_message()` twice (same lead, same params — Gemini gives variation naturally)
-  - [ ] Store variant A in `messages` table
-  - [ ] Store variant B in `messages` table
-  - [ ] Return both message dicts
+- [x] `agent_core/ab_tester.py`
+  - [x] `generate_ab_variants(lead_id, campaign_id, tone, channel)` function
+  - [x] Call `generate_message()` twice (same lead, same params — Gemini gives variation naturally)
+  - [x] Store variant A in `messages` table
+  - [x] Store variant B in `messages` table
+  - [x] Return both message dicts
 
 - [ ] `agent_core/reply_classifier.py`
   - [ ] Load Groq API key from env
