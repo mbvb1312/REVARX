@@ -110,10 +110,10 @@
   - [ ] If classification == 'hot': call `send_telegram(OWNER_CHAT_ID, alert)`
   - [ ] Return `{"ok": True}` to Telegram
 
-- [ ] `channels/email_sender.py`
-  - [ ] Load SendGrid key from env
-  - [ ] `send_email(to_email, subject, body)` function
-  - [ ] Return True on success, False on failure
+- [x] `channels/email_sender.py`
+  - [x] Load SendGrid key from env
+  - [x] `send_email(to_email, subject, body)` function
+  - [x] Return True on success, False on failure
   - [ ] Test: send test email, confirm receipt
 
 - [ ] `channels/whisper_transcriber.py`

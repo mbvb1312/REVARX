@@ -63,7 +63,7 @@ Day 1 Block 2: AI Message Generation (message_generator.py next)
 
 #### Block 3: Send Channel (Telegram first, email second)
 - [x] `channels/telegram_sender.py` — function `send_telegram(chat_id, message)` using bot token
-- [ ] `channels/email_sender.py` — function `send_email(to_email, subject, body)` using SendGrid
+- [x] `channels/email_sender.py` — function `send_email(to_email, subject, body)` using SendGrid
 - [ ] Test: send one message to your own Telegram, confirm receipt on phone
 
 #### Block 4: Basic Streamlit UI
