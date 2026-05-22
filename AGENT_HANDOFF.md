@@ -62,7 +62,7 @@ Day 1 Block 2: AI Message Generation (message_generator.py next)
 - [ ] Manual test: run ab_tester on 3 seed leads, print outputs, confirm they look personalised
 
 #### Block 3: Send Channel (Telegram first, email second)
-- [ ] `channels/telegram_sender.py` — function `send_telegram(chat_id, message)` using bot token
+- [x] `channels/telegram_sender.py` — function `send_telegram(chat_id, message)` using bot token
 - [ ] `channels/email_sender.py` — function `send_email(to_email, subject, body)` using SendGrid
 - [ ] Test: send one message to your own Telegram, confirm receipt on phone
 

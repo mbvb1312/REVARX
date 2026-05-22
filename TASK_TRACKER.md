@@ -92,10 +92,10 @@
 
 ## 📡 CHANNELS
 
-- [ ] `channels/telegram_sender.py`
-  - [ ] Load bot token from env
-  - [ ] `send_telegram(chat_id, message)` async function using python-telegram-bot
-  - [ ] Return True on success, False on failure
+- [x] `channels/telegram_sender.py`
+  - [x] Load bot token from env
+  - [x] `send_telegram(chat_id, message)` async function using python-telegram-bot
+  - [x] Return True on success, False on failure
   - [ ] Test: send "Hello from the agent" to your own chat_id
 
 - [ ] `channels/telegram_webhook.py`
