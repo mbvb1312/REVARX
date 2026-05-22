@@ -11,6 +11,14 @@ st.set_page_config(
 st.title("Dead Lead Reactivation Agent")
 st.markdown("AI-powered outreach to reactivate cold leads.")
 
+with st.sidebar:
+    st.header("Navigation")
+    st.page_link("app.py", label="Home")
+    st.page_link("pages/01_upload.py", label="Upload Leads")
+    st.page_link("pages/02_campaign.py", label="Run Campaign")
+    st.page_link("pages/03_dashboard.py", label="Analytics")
+    st.page_link("pages/04_leads.py", label="Lead Status")
+
 
 def _safe_get(url: str, fallback: dict) -> dict:
     try:
