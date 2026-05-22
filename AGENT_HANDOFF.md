@@ -67,7 +67,7 @@ Day 1 Block 4: Basic Streamlit UI (app.py, 01_upload.py, 02_campaign.py)
 - [ ] Test: send one message to your own Telegram, confirm receipt on phone
 
 #### Block 4: Basic Streamlit UI
-- [ ] `frontend/app.py` — Streamlit multi-page shell with sidebar nav
+- [x] `frontend/app.py` — Streamlit multi-page shell with sidebar nav
 - [ ] `frontend/pages/01_upload.py` — CSV file uploader, calls csv_parser, shows lead table
 - [ ] `frontend/pages/02_campaign.py` — tone selector, channel selector, "Generate Messages" button, message preview for first 3 leads
 - [ ] Test: full flow — upload CSV → generate messages → see previews → click Send → confirm Telegram receives it

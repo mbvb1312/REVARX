@@ -126,10 +126,10 @@
 
 ## 🖥️ FRONTEND (Streamlit)
 
-- [ ] `frontend/app.py`
-  - [ ] Streamlit page config: title "Dead Lead Reactivation Agent", wide layout
+- [x] `frontend/app.py`
+  - [x] Streamlit page config: title "Dead Lead Reactivation Agent", wide layout
   - [ ] Sidebar: navigation links to all 4 pages
-  - [ ] Home page: brief intro text, key metrics cards (total leads, sent today, hot leads)
+  - [x] Home page: brief intro text, key metrics cards (total leads, sent today, hot leads)
 
 - [ ] `frontend/pages/01_upload.py`
   - [ ] Page title: "Upload Leads"
