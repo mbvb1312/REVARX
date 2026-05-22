@@ -15,9 +15,9 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 
 ## 📍 Current Project Status
 
-**PHASE:** Foundation complete, AI core next (Day 1 Block 2)
-**Last agent session:** Added backend foundation, CSV parser, and seed data; repo is live and updated
-**Next agent should start at:** Implement `agent_core/message_generator.py` (Day 1 Block 2)
+**PHASE:** Channels complete, UI next (Day 1 Block 4)
+**Last agent session:** Added message generator, A/B tester, and channel senders
+**Next agent should start at:** Build `frontend/app.py` (Day 1 Block 4)
 
 ---
 
@@ -40,7 +40,7 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 
 ## 🚧 IN PROGRESS — Currently Being Built
 
-Day 1 Block 2: AI Message Generation (message_generator.py next)
+Day 1 Block 4: Basic Streamlit UI (app.py, 01_upload.py, 02_campaign.py)
 
 ---
 
