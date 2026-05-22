@@ -53,7 +53,7 @@ Nothing yet. Start from the top of the Day 1 list below.
 - [x] `.env.example` — create with all env var names (no real values)
 - [x] `backend/database.py` — SQLite connection + create all 4 tables on startup
 - [x] `backend/models.py` — Pydantic models for Lead, Campaign, Message, Reply
-- [ ] `backend/csv_parser.py` — accept uploaded CSV, validate, insert rows to `leads` table
+- [x] `backend/csv_parser.py` — accept uploaded CSV, validate, insert rows to `leads` table
 - [ ] `seed_data.py` — insert 50 realistic dummy leads into DB
 
 #### Block 2: AI Message Generation

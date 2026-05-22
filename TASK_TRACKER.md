@@ -38,12 +38,12 @@
   - [x] Pydantic `MessageCreate` model
   - [x] Pydantic `ReplyCreate` model
 
-- [ ] `backend/csv_parser.py`
-  - [ ] `parse_csv(file)` function — accepts UploadFile from FastAPI
-  - [ ] Validate required columns: name, email, product_interest, last_contact_date, notes
-  - [ ] Insert each row as a Lead into DB
-  - [ ] Return count of inserted leads
-  - [ ] Handle duplicate emails gracefully (skip, don't crash)
+- [x] `backend/csv_parser.py`
+  - [x] `parse_csv(file)` function — accepts UploadFile from FastAPI
+  - [x] Validate required columns: name, email, product_interest, last_contact_date, notes
+  - [x] Insert each row as a Lead into DB
+  - [x] Return count of inserted leads
+  - [x] Handle duplicate emails gracefully (skip, don't crash)
 
 - [ ] `backend/scheduler.py`
   - [ ] APScheduler setup
