@@ -131,13 +131,13 @@
   - [ ] Sidebar: navigation links to all 4 pages
   - [x] Home page: brief intro text, key metrics cards (total leads, sent today, hot leads)
 
-- [ ] `frontend/pages/01_upload.py`
-  - [ ] Page title: "Upload Leads"
-  - [ ] `st.file_uploader()` for CSV files
-  - [ ] On upload: call FastAPI `/upload-leads` endpoint
-  - [ ] Show success message with count of leads imported
-  - [ ] Show leads table using `st.dataframe()`
-  - [ ] Add "Download sample CSV" button with an example CSV template
+- [x] `frontend/pages/01_upload.py`
+  - [x] Page title: "Upload Leads"
+  - [x] `st.file_uploader()` for CSV files
+  - [x] On upload: call FastAPI `/upload-leads` endpoint
+  - [x] Show success message with count of leads imported
+  - [x] Show leads table using `st.dataframe()`
+  - [x] Add "Download sample CSV" button with an example CSV template
 
 - [ ] `frontend/pages/02_campaign.py`
   - [ ] Page title: "Run Campaign"
