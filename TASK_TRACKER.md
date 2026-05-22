@@ -32,11 +32,11 @@
   - [x] Create `replies` table
   - [x] `init_db()` function that creates all tables if they don't exist
 
-- [ ] `backend/models.py`
-  - [ ] Pydantic `LeadCreate` model (name, email, telegram_chat_id, product_interest, last_contact_date, notes)
-  - [ ] Pydantic `Lead` model (includes id, status, created_at)
-  - [ ] Pydantic `MessageCreate` model
-  - [ ] Pydantic `ReplyCreate` model
+- [x] `backend/models.py`
+  - [x] Pydantic `LeadCreate` model (name, email, telegram_chat_id, product_interest, last_contact_date, notes)
+  - [x] Pydantic `Lead` model (includes id, status, created_at)
+  - [x] Pydantic `MessageCreate` model
+  - [x] Pydantic `ReplyCreate` model
 
 - [ ] `backend/csv_parser.py`
   - [ ] `parse_csv(file)` function — accepts UploadFile from FastAPI

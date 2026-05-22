@@ -52,7 +52,7 @@ Nothing yet. Start from the top of the Day 1 list below.
 - [x] `requirements.txt` — create with all packages listed in PROJECT_IDEA_README.md
 - [x] `.env.example` — create with all env var names (no real values)
 - [x] `backend/database.py` — SQLite connection + create all 4 tables on startup
-- [ ] `backend/models.py` — Pydantic models for Lead, Campaign, Message, Reply
+- [x] `backend/models.py` — Pydantic models for Lead, Campaign, Message, Reply
 - [ ] `backend/csv_parser.py` — accept uploaded CSV, validate, insert rows to `leads` table
 - [ ] `seed_data.py` — insert 50 realistic dummy leads into DB
 
