@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class LeadCreate(BaseModel):
     name: str
     email: Optional[str] = None
+    phone: Optional[str] = None
     telegram_chat_id: Optional[str] = None
     product_interest: str
     last_contact_date: Optional[str] = None
@@ -16,6 +17,7 @@ class LeadCreate(BaseModel):
 class Lead(LeadCreate):
     id: int
     status: str
+    lead_score: str
     created_at: datetime
 
     class Config:

@@ -39,6 +39,7 @@ def parse_and_insert_csv(file_bytes: bytes) -> dict:
             lead = Lead(
                 name=name,
                 email=email if email else None,
+                phone=str(row.get("phone", "")).strip() or None,
                 telegram_chat_id=str(row.get("telegram_chat_id", "")).strip() or None,
                 product_interest=str(row.get("product_interest", "")).strip(),
                 last_contact_date=str(row.get("last_contact_date", "")).strip() or None,

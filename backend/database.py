@@ -20,10 +20,12 @@ class Lead(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     email = Column(String)
+    phone = Column(String)
     telegram_chat_id = Column(String)
     product_interest = Column(String)
     last_contact_date = Column(String)
     notes = Column(Text)
+    lead_score = Column(String, default="cold")
     status = Column(String, default="cold")
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
