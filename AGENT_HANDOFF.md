@@ -15,9 +15,9 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 
 ## 📍 Current Project Status
 
-**PHASE:** Foundation in progress (Day 1 Block 1)
-**Last agent session:** Initialized git repo, added .gitignore, created base folder structure
-**Next agent should start at:** Create requirements.txt and .env.example (Day 1 Block 1)
+**PHASE:** Foundation complete, AI core next (Day 1 Block 2)
+**Last agent session:** Added backend foundation, CSV parser, and seed data; repo is live and updated
+**Next agent should start at:** Implement `agent_core/message_generator.py` (Day 1 Block 2)
 
 ---
 
@@ -40,7 +40,7 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 
 ## 🚧 IN PROGRESS — Currently Being Built
 
-Nothing yet. Start from the top of the Day 1 list below.
+Day 1 Block 2: AI Message Generation (message_generator.py next)
 
 ---
 
@@ -54,7 +54,7 @@ Nothing yet. Start from the top of the Day 1 list below.
 - [x] `backend/database.py` — SQLite connection + create all 4 tables on startup
 - [x] `backend/models.py` — Pydantic models for Lead, Campaign, Message, Reply
 - [x] `backend/csv_parser.py` — accept uploaded CSV, validate, insert rows to `leads` table
-- [ ] `seed_data.py` — insert 50 realistic dummy leads into DB
+- [x] `seed_data.py` — insert 50 realistic dummy leads into DB
 
 #### Block 2: AI Message Generation
 - [ ] `agent_core/message_generator.py` — Gemini 2.0 Flash call using prompt in PROJECT_IDEA_README.md

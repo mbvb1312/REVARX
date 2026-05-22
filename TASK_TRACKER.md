@@ -186,20 +186,20 @@
 
 ## 🌱 SEED DATA
 
-- [ ] `seed_data.py`
-  - [ ] Generate 50 realistic leads with varied:
+- [x] `seed_data.py`
+  - [x] Generate 50 realistic leads with varied:
     - Names (Indian names — localised for Pondicherry context)
     - Product interests (productivity tool, CRM software, e-commerce solution, HR platform, inventory management)
     - Last contact dates (1–6 months ago)
     - Notes (e.g. "Attended webinar", "Requested pricing", "Trial expired")
     - Emails and telegram_chat_ids (fake but formatted correctly)
-  - [ ] Assign statuses: 20 cold, 10 warm, 5 hot, 5 unsubscribed, 10 pending
-  - [ ] Insert 50 messages (one per cold lead, sent)
-  - [ ] Insert 13 replies (for leads that replied):
+  - [x] Assign statuses: 20 cold, 10 warm, 5 hot, 5 unsubscribed, 10 pending
+  - [x] Insert 50 messages (one per cold lead, sent)
+  - [x] Insert 13 replies (for leads that replied):
     - 5 hot replies ("Yes let's talk", "I'm interested", etc.)
     - 4 warm replies ("Maybe next month", "Send me more info")
     - 4 cold replies ("Not interested right now")
-  - [ ] Confirm data looks good: `python seed_data.py && python -c "from backend.database import get_db; ..."`
+  - [x] Confirm data looks good: `python seed_data.py && python -c "from backend.database import get_db; ..."`
 
 ---
 
