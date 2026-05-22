@@ -80,7 +80,7 @@ Day 1 Block 4: Basic Streamlit UI (app.py, 01_upload.py, 02_campaign.py)
 
 #### Block 5: Reply Handling
 - [ ] `channels/telegram_webhook.py` — FastAPI POST `/webhook` endpoint, receives Telegram updates, stores reply in `replies` table
-- [ ] `agent_core/reply_classifier.py` — Groq LLaMA call: classify reply text as hot/warm/cold/unsubscribe
+- [x] `agent_core/reply_classifier.py` — Groq LLaMA call: classify reply text as hot/warm/cold/unsubscribe
 - [ ] Hot lead escalation: when classification = 'hot', call `telegram_sender.send_telegram(OWNER_CHAT_ID, alert_message)`
 - [ ] `channels/whisper_transcriber.py` — if reply is a voice note (audio file), call Groq Whisper to transcribe first
 - [ ] `main.py` — wire up FastAPI app: include webhook router, handle startup DB init

@@ -70,11 +70,11 @@
   - [x] Store variant B in `messages` table
   - [x] Return both message dicts
 
-- [ ] `agent_core/reply_classifier.py`
-  - [ ] Load Groq API key from env
-  - [ ] `classify_reply(reply_text)` function
-  - [ ] Groq LLaMA prompt: classify as EXACTLY one of: hot, warm, cold, unsubscribe
-  - [ ] Return classification string (lowercase)
+- [x] `agent_core/reply_classifier.py`
+  - [x] Load Groq API key from env
+  - [x] `classify_reply(reply_text)` function
+  - [x] Groq LLaMA prompt: classify as EXACTLY one of: hot, warm, cold, unsubscribe
+  - [x] Return classification string (lowercase)
   - [ ] Test: classify "Yes I'm interested, let's talk" → must return 'hot'
   - [ ] Test: classify "Please remove me from your list" → must return 'unsubscribe'
 
