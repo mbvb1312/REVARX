@@ -24,13 +24,13 @@
 
 ## 📁 BACKEND
 
-- [ ] `backend/database.py`
-  - [ ] SQLite connection using SQLAlchemy
-  - [ ] Create `leads` table
-  - [ ] Create `campaigns` table
-  - [ ] Create `messages` table
-  - [ ] Create `replies` table
-  - [ ] `init_db()` function that creates all tables if they don't exist
+- [x] `backend/database.py`
+  - [x] SQLite connection using SQLAlchemy
+  - [x] Create `leads` table
+  - [x] Create `campaigns` table
+  - [x] Create `messages` table
+  - [x] Create `replies` table
+  - [x] `init_db()` function that creates all tables if they don't exist
 
 - [ ] `backend/models.py`
   - [ ] Pydantic `LeadCreate` model (name, email, telegram_chat_id, product_interest, last_contact_date, notes)
