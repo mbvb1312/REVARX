@@ -18,7 +18,7 @@
 - [ ] Create Telegram bot via @BotFather, get token
 - [ ] Get your own Telegram chat ID (message @userinfobot)
 - [ ] Create SendGrid account, get API key, verify sender email
-- [ ] Create project folder structure (mkdir backend agent_core channels frontend/pages frontend/components analytics)
+- [x] Create project folder structure (mkdir backend agent_core channels frontend/pages frontend/components analytics)
 
 ---
 

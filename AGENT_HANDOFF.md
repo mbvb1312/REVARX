@@ -15,9 +15,9 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 
 ## 📍 Current Project Status
 
-**PHASE:** Planning complete. Build not started.
-**Last agent session:** Initial architecture planning (no code written yet)
-**Next agent should start at:** Setting up the project foundation (Step 1 in Day 1 below)
+**PHASE:** Foundation in progress (Day 1 Block 1)
+**Last agent session:** Initialized git repo, added .gitignore, created base folder structure
+**Next agent should start at:** Create requirements.txt and .env.example (Day 1 Block 1)
 
 ---
 
@@ -32,6 +32,9 @@ Priority order: Core pipeline → Reply classification → Analytics dashboard �
 - [x] Folder structure decided (see PROJECT_IDEA_README.md)
 - [x] Demo pitch script written (in PROJECT_IDEA_README.md)
 - [x] All README files written (this file + sub-folder READMEs)
+- [x] Git repository initialized and pushed to GitHub
+- [x] .gitignore added (ignores .env, venv, db, caches)
+- [x] Base folder structure created (backend/, agent_core/, channels/, frontend/pages/, frontend/components/, analytics/)
 
 ---
 
