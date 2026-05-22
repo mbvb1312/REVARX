@@ -10,7 +10,7 @@
 
 - [ ] Create Python virtual environment: `python -m venv venv`
 - [ ] Activate venv: `source venv/bin/activate`
-- [ ] Create `requirements.txt` (contents in PROJECT_IDEA_README.md)
+- [x] Create `requirements.txt` (contents in PROJECT_IDEA_README.md)
 - [ ] Run `pip install -r requirements.txt`
 - [ ] Create `.env` file from `.env.example`
 - [ ] Confirm Gemini API key works: test a basic call
