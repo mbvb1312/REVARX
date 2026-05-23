@@ -93,6 +93,7 @@ with tab_single:
         with col_a:
             name = st.text_input("Name", "Vicky Demo")
             email = st.text_input("Email", "mbvb1312@gmail.com")
+            phone = st.text_input("Phone (for WhatsApp opt-in)", "+91")
             age = st.number_input("Age", min_value=10, max_value=90, value=24, step=1)
             gender = st.selectbox("Gender", ["male", "female", "other"])
             state = st.selectbox("State", INDIAN_STATES, index=12)
@@ -108,7 +109,7 @@ with tab_single:
         payload = {
             "name": name,
             "email": email,
-            "phone": None,
+            "phone": phone,
             "age": int(age),
             "gender": gender,
             "state": state,
@@ -153,7 +154,9 @@ with tab_single:
                     with col_t:
                         if telegram_link:
                             st.link_button("Continue on Telegram", telegram_link)
-                            st.caption("Click Start to opt in. The AI will send a personalized message immediately.")
+                            st.caption(
+                                "Click Start to opt in. If the bot does not respond, set the webhook (local dev needs ngrok)."
+                            )
                         else:
                             st.info("Telegram link not configured.")
             else:
