@@ -137,7 +137,7 @@ def _seed_messages(db, leads: list, campaign: Campaign) -> list:
     sent_leads = leads[:sent_count]
     pending_leads = leads[sent_count:sent_count + pending_count]
 
-    sent_variants = ("A",) * 23 + ("B",) * 15
+    sent_variants = list(("A",) * 23 + ("B",) * 15)
     random.shuffle(sent_variants)
 
     for lead, variant in zip(sent_leads, sent_variants):
