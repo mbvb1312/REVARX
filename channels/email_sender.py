@@ -1,27 +1,31 @@
 import os
-
+import resend
 from dotenv import load_dotenv
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 load_dotenv()
+
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     """
-    Sends an email via SendGrid.
+    Sends an email via the Resend API.
     Returns True on success, False on failure.
     """
     try:
-        message = Mail(
-            from_email=os.getenv("FROM_EMAIL"),
-            to_emails=to_email,
-            subject=subject,
-            plain_text_content=body,
-        )
-        client = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-        response = client.send(message)
-        return response.status_code in [200, 201, 202]
+        from_email = os.getenv("FROM_EMAIL")
+        if not from_email:
+            from_email = "onboarding@resend.dev"
+
+        # Format body as HTML paragraph for sleek rendering
+        r = resend.Emails.send({
+            "from": from_email,
+            "to": to_email,
+            "subject": subject,
+            "html": f"<p style='font-family: sans-serif; font-size: 14px; color: #333;'>{body}</p>"
+        })
+        
+        return r is not None
     except Exception as exc:
-        print(f"[email_sender] Failed to send to {to_email}: {exc}")
+        print(f"[email_sender] Failed to send email via Resend to {to_email}: {exc}")
         return False
