@@ -1,119 +1,171 @@
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from backend.database import Campaign, Lead, Message, Reply, SessionLocal, init_db
-
+from backend.database import Campaign, Lead, Message, Reply, SessionLocal, init_db, utc_now
 
 NAMES = [
-    "Priya Sharma",
-    "Rahul Verma",
-    "Ananya Rao",
-    "Arjun Iyer",
-    "Meera Nair",
-    "Karthik Das",
-    "Aditi Singh",
-    "Vikram Patel",
-    "Neha Gupta",
-    "Rohan Mehta",
-    "Suresh Kumar",
-    "Pooja Menon",
-    "Deepak Reddy",
-    "Nisha Jain",
-    "Ravi Bansal",
-    "Isha Kulkarni",
-    "Manish Kapoor",
-    "Sneha Pillai",
-    "Varun Arora",
-    "Kavya Desai",
-    "Aman Joshi",
-    "Divya Soni",
-    "Pranav Shah",
-    "Leena George",
-    "Gaurav Malhotra",
-    "Ankit Yadav",
-    "Ritika Bose",
-    "Harish Naik",
-    "Swati Mishra",
-    "Abhishek Roy",
-    "Tanvi Shetty",
-    "Naveen Pillai",
-    "Shruti Anand",
-    "Kiran Rao",
-    "Mohit Saxena",
-    "Jaya Prasad",
-    "Seema Goyal",
-    "Akhil Menon",
-    "Pallavi Nair",
-    "Siddharth Rao",
-    "Arpita Das",
-    "Nitin Verma",
-    "Anu Joseph",
-    "Sanjay Kapoor",
-    "Lakshmi Iyer",
-    "Rakesh Sinha",
-    "Bhavna Shah",
-    "Sunil Rao",
-    "Vidya Nair",
-    "Rohit Jain",
+    ("Aarav Sharma", "male"),
+    ("Priya Nair", "female"),
+    ("Rohan Mehta", "male"),
+    ("Ananya Rao", "female"),
+    ("Karthik Iyer", "male"),
+    ("Sneha Kapoor", "female"),
+    ("Vikram Patel", "male"),
+    ("Meera Menon", "female"),
+    ("Aditya Joshi", "male"),
+    ("Isha Gupta", "female"),
+    ("Rahul Verma", "male"),
+    ("Kavya Desai", "female"),
+    ("Arjun Reddy", "male"),
+    ("Nisha Jain", "female"),
+    ("Siddharth Bose", "male"),
+    ("Tanvi Shetty", "female"),
+    ("Manish Kumar", "male"),
+    ("Aditi Singh", "female"),
+    ("Pranav Shah", "male"),
+    ("Leena George", "female"),
+    ("Gaurav Malhotra", "male"),
+    ("Ritika Roy", "female"),
+    ("Naveen Pillai", "male"),
+    ("Shruti Anand", "female"),
+    ("Mohit Saxena", "male"),
+    ("Pallavi Nair", "female"),
+    ("Akhil Menon", "male"),
+    ("Bhavna Shah", "female"),
+    ("Sunil Rao", "male"),
+    ("Vidya Nair", "female"),
+    ("Abhishek Yadav", "male"),
+    ("Swati Mishra", "female"),
+    ("Harish Naik", "male"),
+    ("Divya Soni", "female"),
+    ("Rakesh Sinha", "male"),
+    ("Seema Goyal", "female"),
+    ("Nitin Verma", "male"),
+    ("Arpita Das", "female"),
+    ("Rohit Jain", "male"),
+    ("Lakshmi Iyer", "female"),
+    ("Sanjay Kapoor", "male"),
+    ("Jaya Prasad", "female"),
+    ("Aman Joshi", "male"),
+    ("Pooja Menon", "female"),
+    ("Deepak Reddy", "male"),
+    ("Neha Gupta", "female"),
+    ("Varun Arora", "male"),
+    ("Kiran Rao", "other"),
+    ("Ankit Yadav", "male"),
+    ("Maya Thomas", "female"),
 ]
 
-PRODUCT_INTERESTS = [
-    "CRM Software",
-    "Inventory Management",
-    "HR Platform",
-    "E-commerce Enablement",
-    "Productivity Suite",
+INDIAN_STATES = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
 ]
 
-NOTES = [
-    "Attended webinar",
-    "Requested pricing",
-    "Trial expired",
-    "Asked about integration",
-    "Wanted a demo call",
+PRODUCTS = [
+    ("MacBook Air M3", "electronics"),
+    ("Samsung Galaxy S24 Ultra", "electronics"),
+    ("Sony WH-1000XM5 Headphones", "electronics"),
+    ("Dell Inspiron 14 Laptop", "electronics"),
+    ("Nike Air Max 270", "footwear"),
+    ("Adidas Ultraboost Light", "footwear"),
+    ("Puma RS-X Sneakers", "footwear"),
+    ("Levi's 501 Jeans", "fashion"),
+    ("H&M Linen Shirt", "fashion"),
+    ("Fossil Gen 6 Smartwatch", "accessories"),
+    ("Safari Cabin Trolley Bag", "accessories"),
+    ("LG 7kg Front Load Washing Machine", "home_appliances"),
+    ("Philips Air Fryer XL", "home_appliances"),
 ]
 
+BROWSE_NOTES = [
+    "Viewed 3 times in the last week",
+    "Added to cart and abandoned at checkout",
+    "Compared with 2 other products",
+    "Spent 12 minutes on the product page",
+    "Clicked ad and browsed reviews",
+    "Wishlist add detected but no purchase",
+    "Returned twice after price-drop notification",
+    "Abandoned after checking delivery estimate",
+]
 
 HOT_REPLIES = [
-    "Yes, I'm interested. Let's schedule a call this week.",
-    "This looks great. Can you share pricing and next steps?",
-    "I'm ready to move forward. When can we start?",
-    "Sounds perfect. Please book a demo.",
-    "We want to proceed. Can you send details today?",
+    "Yes, is there a discount available if I buy today?",
+    "Can you send the checkout link again? I want to purchase.",
+    "Is this product available for delivery this week?",
+    "I am interested. Do you have any card offer?",
+    "Please share the final price and payment options.",
 ]
 
 WARM_REPLIES = [
-    "Maybe next month. Please check back later.",
-    "Not right now, but send more info.",
-    "We are considering options. Follow up soon.",
-    "Can you remind me in a few weeks?",
+    "Maybe next week. Please remind me again.",
+    "Can you send more details before I decide?",
+    "I am comparing options. Keep me posted if the price drops.",
+    "Interested, but I need to check with my family first.",
+    "Can you tell me if EMI is available?",
 ]
 
 COLD_REPLIES = [
+    "Already bought from Amazon.",
+    "The price is too high for me.",
     "Not interested right now.",
-    "We decided to go another direction.",
-    "No, thanks.",
-    "Please stop reaching out for now.",
+    "I bought a different model from Flipkart.",
+    "No thanks, I was only browsing.",
+]
+
+UNSUB_REPLIES = [
+    "Stop emailing me.",
+    "Unsubscribe me from these emails.",
+    "Please remove me from your list.",
 ]
 
 
-def _random_date_string(days_back: int) -> str:
-    date = datetime.utcnow() - timedelta(days=days_back)
-    return date.strftime("%Y-%m-%d")
+def _email_for(name: str) -> str:
+    return f"{name.lower().replace(' ', '.')}@example.com"
 
 
-def _seed_leads(db) -> list:
+def _seed_leads(db) -> list[Lead]:
     leads = []
-    for idx, name in enumerate(NAMES[:50]):
-        email = f"{name.lower().replace(' ', '.')}@example.com"
+    for idx, (name, gender) in enumerate(NAMES):
+        product, category = PRODUCTS[idx % len(PRODUCTS)]
         lead = Lead(
             name=name,
-            email=email,
+            email=_email_for(name),
             telegram_chat_id=None,
-            product_interest=random.choice(PRODUCT_INTERESTS),
-            last_contact_date=_random_date_string(random.randint(30, 180)),
-            notes=random.choice(NOTES),
-            status="cold",
+            product_interest=product,
+            product_viewed=product,
+            product_category=category,
+            age=random.randint(18, 55),
+            gender=gender,
+            state=INDIAN_STATES[idx % len(INDIAN_STATES)],
+            last_contact_date=(utc_now() - timedelta(days=random.randint(1, 21))).strftime("%Y-%m-%d"),
+            notes=random.choice(BROWSE_NOTES),
+            status="new",
         )
         db.add(lead)
         leads.append(lead)
@@ -123,113 +175,81 @@ def _seed_leads(db) -> list:
 
 
 def _seed_campaign(db) -> Campaign:
-    campaign = Campaign(name="Reactivation Campaign Q2 2026", tone="friendly", channel="telegram")
+    campaign = Campaign(name="Seeded E-commerce Recovery Campaign", tone="ab-test", channel="email")
     db.add(campaign)
     db.flush()
     return campaign
 
 
-def _seed_messages(db, leads: list, campaign: Campaign) -> list:
+def _message_body(lead: Lead, variant: str) -> str:
+    if variant == "A":
+        return (
+            f"Dear {lead.name}, we noticed you were browsing {lead.product_viewed}. "
+            "You can return to your selection and review current availability, delivery options, and active offers."
+        )
+    return (
+        f"Hey {lead.name}, that {lead.product_viewed} you were eyeing is still waiting. "
+        "Take one more look whenever you are ready."
+    )
+
+
+def _seed_messages(db, leads: list[Lead], campaign: Campaign) -> list[Message]:
     messages = []
+    sent_count = 42
+    variants = list(("A",) * 22 + ("B",) * 20)
+    random.shuffle(variants)
 
-    sent_count = 38
-    pending_count = 12
-    sent_leads = leads[:sent_count]
-    pending_leads = leads[sent_count:sent_count + pending_count]
-
-    sent_variants = list(("A",) * 23 + ("B",) * 15)
-    random.shuffle(sent_variants)
-
-    for lead, variant in zip(sent_leads, sent_variants):
-        messages.append(
-            Message(
-                lead_id=lead.id,
-                campaign_id=campaign.id,
-                variant=variant,
-                content=f"Hi {lead.name}, just checking in about {lead.product_interest}.",
-                channel="telegram",
-                tone=random.choice(["friendly", "professional", "urgent"]),
-                status="sent",
-                sent_at=datetime.utcnow() - timedelta(hours=random.randint(1, 72)),
-            )
+    for lead, variant in zip(leads[:sent_count], variants):
+        lead.ab_preference = variant
+        lead.status = "pending"
+        msg = Message(
+            lead_id=lead.id,
+            campaign_id=campaign.id,
+            variant=variant,
+            content=_message_body(lead, variant),
+            channel="email",
+            tone="professional" if variant == "A" else "friendly",
+            status="sent",
+            sent_at=utc_now() - timedelta(hours=random.randint(2, 96)),
+            llm_used=random.choice(["Groq llama-3.1-8b-instant", "SambaNova Meta-Llama-3.3-70B-Instruct", "REVARX Local Template"]),
         )
+        db.add(msg)
+        messages.append(msg)
 
-    for lead in pending_leads:
-        messages.append(
-            Message(
-                lead_id=lead.id,
-                campaign_id=campaign.id,
-                variant=random.choice(["A", "B"]),
-                content=f"Hi {lead.name}, following up on {lead.product_interest}.",
-                channel="telegram",
-                tone=random.choice(["friendly", "professional", "urgent"]),
-                status="pending",
-                sent_at=None,
-            )
-        )
+    for lead in leads[sent_count:]:
+        lead.status = "new"
 
-    db.add_all(messages)
     db.flush()
     return messages
 
 
-def _seed_replies(db, messages: list, leads: list) -> None:
-    sent_messages = [msg for msg in messages if msg.status == "sent"]
+def _seed_replies(db, messages: list[Message], leads: list[Lead]) -> None:
+    reply_plan = []
+    reply_plan.extend(("hot", text) for text in HOT_REPLIES)
+    reply_plan.extend(("warm", text) for text in WARM_REPLIES)
+    reply_plan.extend(("cold", text) for text in COLD_REPLIES)
+    reply_plan.extend(("unsubscribe", text) for text in UNSUB_REPLIES)
 
-    a_messages = [msg for msg in sent_messages if msg.variant == "A"]
-    b_messages = [msg for msg in sent_messages if msg.variant == "B"]
+    random.shuffle(reply_plan)
 
-    selected_a = a_messages[:8]
-    selected_b = b_messages[:3]
-
-    reply_times = [10, 10, 11, 11, 12, 9, 10, 11, 10, 12, 10]
-
-    replies = []
-    hot_replies = HOT_REPLIES[:5]
-    warm_replies = WARM_REPLIES[:4]
-    cold_replies = COLD_REPLIES[:4]
-    reply_texts = hot_replies + warm_replies + cold_replies
-
-    for msg, reply_text, hour in zip(selected_a + selected_b, reply_texts, reply_times):
-        received_at = datetime.utcnow().replace(hour=hour, minute=0, second=0, microsecond=0)
-        classification = "hot" if reply_text in hot_replies else "warm" if reply_text in warm_replies else "cold"
-        replies.append(
+    for msg, (classification, text) in zip(messages[: len(reply_plan)], reply_plan):
+        lead = next(lead for lead in leads if lead.id == msg.lead_id)
+        lead.status = "unsubscribed" if classification == "unsubscribe" else classification
+        db.add(
             Reply(
-                lead_id=msg.lead_id,
+                lead_id=lead.id,
                 message_id=msg.id,
-                content=reply_text,
+                content=text,
                 is_voice_note=False,
                 classification=classification,
-                received_at=received_at,
+                received_at=utc_now() - timedelta(hours=random.randint(1, 48)),
+                llm_used=random.choice(["Groq llama-3.1-8b-instant", "SambaNova Meta-Llama-3.3-70B-Instruct", "REVARX Local Heuristics"]),
             )
         )
 
+    for msg in messages[len(reply_plan) : len(reply_plan) + 10]:
         lead = next(lead for lead in leads if lead.id == msg.lead_id)
-        lead.status = classification
-
-    # Add two extra replies without message_id to reach 13 total replies
-    extra_replies = [
-        "Thanks, got it. Will revisit later.",
-        "Not now, maybe next quarter.",
-    ]
-    for extra_text in extra_replies:
-        replies.append(
-            Reply(
-                lead_id=leads[-1].id,
-                message_id=None,
-                content=extra_text,
-                is_voice_note=False,
-                classification="warm",
-                received_at=datetime.utcnow().replace(hour=10, minute=30, second=0, microsecond=0),
-            )
-        )
-
-    db.add_all(replies)
-
-
-def _apply_unsubscribed(leads: list) -> None:
-    for lead in leads[-5:]:
-        lead.status = "unsubscribed"
+        lead.status = "no_response"
 
 
 def seed() -> None:
@@ -248,10 +268,9 @@ def seed() -> None:
         campaign = _seed_campaign(db)
         messages = _seed_messages(db, leads, campaign)
         _seed_replies(db, messages, leads)
-        _apply_unsubscribed(leads)
 
         db.commit()
-        print("Seeded 50 leads, 50 messages, 13 replies.")
+        print("Seeded 50 e-commerce customers, 42 recovery emails, and realistic replies.")
     finally:
         db.close()
 

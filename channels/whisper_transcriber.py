@@ -1,18 +1,24 @@
 import os
 
 from dotenv import load_dotenv
-from groq import Groq
 
 load_dotenv()
-
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 def transcribe_audio(audio_bytes: bytes, filename: str = "audio.ogg") -> str:
     """
     Transcribes audio bytes using Groq Whisper.
+    The Groq client is initialized lazily so missing keys do not break app startup.
     """
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not groq_key:
+        print("[whisper_transcriber] GROQ_API_KEY is not configured.")
+        return ""
+
     try:
+        from groq import Groq
+
+        client = Groq(api_key=groq_key)
         transcription = client.audio.transcriptions.create(
             file=(filename, audio_bytes),
             model="whisper-large-v3",

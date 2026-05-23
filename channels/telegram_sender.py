@@ -1,5 +1,6 @@
 import asyncio
 import os
+from threading import Thread
 
 from dotenv import load_dotenv
 from telegram import Bot
@@ -10,7 +11,12 @@ load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 OWNER_CHAT_ID = os.getenv("TELEGRAM_OWNER_CHAT_ID", "")
 
-bot = Bot(token=BOT_TOKEN)
+bot = None
+if BOT_TOKEN:
+    try:
+        bot = Bot(token=BOT_TOKEN)
+    except Exception as exc:
+        print(f"[telegram_sender] Could not initialize Bot: {exc}")
 
 
 async def send_telegram_async(chat_id: str, message: str) -> bool:
@@ -18,6 +24,9 @@ async def send_telegram_async(chat_id: str, message: str) -> bool:
     Sends a text message to a Telegram chat.
     Returns True on success, False on failure.
     """
+    if not bot:
+        print("[telegram_sender] Bot is not initialized (missing TELEGRAM_BOT_TOKEN)")
+        return False
     try:
         await bot.send_message(chat_id=chat_id, text=message, parse_mode="Markdown")
         return True
@@ -28,7 +37,20 @@ async def send_telegram_async(chat_id: str, message: str) -> bool:
 
 def send_telegram(chat_id: str, message: str) -> bool:
     """Synchronous wrapper for non-async contexts."""
-    return asyncio.run(send_telegram_async(chat_id, message))
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(send_telegram_async(chat_id, message))
+
+    result = {"ok": False}
+
+    def _runner():
+        result["ok"] = asyncio.run(send_telegram_async(chat_id, message))
+
+    thread = Thread(target=_runner, daemon=True)
+    thread.start()
+    thread.join()
+    return result["ok"]
 
 
 def send_hot_lead_alert(lead_name: str, reply_text: str) -> bool:

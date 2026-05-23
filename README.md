@@ -1,168 +1,130 @@
-# 🤖 REVARX AI — Dead Lead Reactivation Agent
-### PS3 (Open Track) — Autonomous Multi-Channel Re-Engagement & A/B Learning Agent
-*Organized by Steps AI*
+# REVARX AI
 
-[![GitHub License](https://img.shields.ly/badge/license-MIT-blue.svg)](LICENSE)
-[![FastAPI Backend](https://img.shields.ly/badge/backend-FastAPI-green.svg)](main.py)
-[![Streamlit UI](https://img.shields.ly/badge/frontend-Streamlit-orange.svg)](frontend/app.py)
+## Plain-English Summary
 
----
+Every ecommerce business loses money when customers browse products, add items to cart, and then disappear. The intent is warm, but follow-up is usually manual, generic, and untracked.
 
-## 💡 The Executive Pitch: Resurrecting the Lead Graveyard
+REVARX AI turns those abandoned sessions into an automated recovery workflow:
 
-Every sales team, marketer, and small business owner shares a frustrating bottleneck: **The Lead Graveyard**. 
+1. A customer is added (single form or bulk upload).
+2. The AI writes a personalized recovery message.
+3. The system chooses the best A/B style (professional vs friendly).
+4. The message is sent and tracked.
+5. Replies are classified (hot, warm, cold, unsubscribe).
+6. Analytics show which style converts for each segment.
 
-These are the hundreds of people who filled out a form, attended a webinar, or signed up for a trial, only to go silent. These leads are *warm in intent* but went cold due to lack of timely, high-touch follow-up. 
-* **The Cost of Manual Follow-Up**: Writing a bespoke, highly personalized re-engagement message for 500 cold contacts is operationally impossible.
-* **The Failure of Mass Emailing**: Sending generic, template-driven spam emails leads to massive unsubscribe rates and domain reputation damage.
+This gives founders and evaluators a clear, end-to-end recovery loop: intent in, outreach out, learning back in.
 
-### 🌟 The Solution: REVARX AI
-**REVARX AI** is an autonomous outbound sales agent that acts as a 24/7 dedicated re-engagement representative. It connects directly to your databases, ingests cold records, and converts them back into active sales conversations across **WhatsApp, Telegram, and Email**.
+## How the Demo Feels
 
-```
-  [COLD LEAD GRAVEYARD] 
-          │
-          ▼
-   [REVARX AGENT] ➔ Personalized Variant Generation (Gemini 2.0)
-          │
-          ▼
-   [MULTI-CHANNEL DISPATCH] ➔ WhatsApp (Twilio) | Telegram | Email (SendGrid)
-          │
-          ▼
-   [sentiment classifier] ➔ Groq LLaMA-3.1 Sentiment Analysis
-          │
-          ├── HOT 🔥 ➔ Push Notification Alert to Owner + Immediate Pipeline Handoff
-          ├── WARM 🟡 ➔ Scheduled Follow-Up Task Created
-          ├── COLD 🔵 ➔ Retained in Database
-          └── UNSUBSCRIBE 🚫 ➔ Instantly Suppressed
-```
+- Add one customer and see an email sent instantly.
+- Upload a CSV/TXT list and queue a bulk recovery campaign.
+- Simulate replies to update lead status and A/B learning.
+- Watch dashboards update by age group, gender, state, and product category.
 
-By automatically running localized, context-driven re-engagement campaigns and testing different tones in real-time, **REVARX AI turns dead databases back into active pipelines without a single click from your sales reps.**
+Email is active now via Resend. WhatsApp and Telegram are modeled as user-initiated opt-in flows (deep links + bot start), which aligns with real-world consent requirements.
 
----
+## Why It Matters (Evaluator Lens)
 
-## 📡 Multi-Channel Re-Engagement Architecture
+- Clear business pain: abandoned intent and lost revenue.
+- AI used for personalization and classification, not just a chatbot.
+- A/B learning is measurable and explainable by demographic slice.
+- Demo is realistic and audit-friendly, with a mock mode and simulator.
 
-Instead of locking you into a single inbox, REVARX AI deploys your brand voice consistently across three key channels:
+## Technical Overview
 
-1. **Telegram (Live BOT Interface)**: Perfect for immediate, zero-friction local tests. Leads receive stylized Markdown messages, and their text or **voice note** replies are parsed instantly.
-2. **WhatsApp Business (Twilio Hook Ready)**: The highest open-rate messaging channel globally. Directly integrated to send outbound check-ins and receive instant replies.
-3. **SendGrid Email API**: Handles formal corporate outreach, writing custom subject lines and email copy that naturally references the lead's historical product interest and notes.
+### Architecture
 
----
+- Frontend: Streamlit multi-page app for live demo, campaign control, analytics, and customer timeline.
+- Backend: FastAPI for lead intake, A/B generation, email dispatch, and analytics APIs.
+- Database: SQLite for leads, campaigns, messages, and replies.
+- Scheduling: APScheduler for pending-message scan and send.
 
-## 🧠 Technical Deep-Dive: Stateful AI Orchestration
+### AI Stack
 
-REVARX AI is not a collection of static prompts; it is a **state-driven autonomous agent** designed to represent production-grade agentic engineering.
+- Primary: Groq
+- Fallback: SambaNova
+- Optional: Gemini
+- Local templates and heuristics ensure the demo still works without keys.
 
-### 1. Stateful Campaign Graph (LangGraph)
-Outbound execution is governed by a **LangGraph StateGraph** pipeline. Rather than executing disjointed API calls, the campaign maintains state integrity as it steps through nodes:
-* `load_leads` node: Queries SQLite, filters cold records, and constructs context.
-* `generate_messages` node: Invokes **Gemini 2.0 Flash** to compose personalized, context-aware variant pairs.
-* `send_messages` node: Alternates between Variant A and B for strict statistical A/B isolation, sending them over the configured channel.
-* `update_status` node: Transitions the database states to update pipelines.
+### Channels
 
-### 2. Automatic A/B Testing & Optimization Loop
-For every cold lead, the agent generates two unique personalized drafts (Variant A and Variant B). It alternates delivery to measure performance scientifically:
-* **The Optimization Loop**: The analytics engine tracks the conversion funnel of Variant A vs. Variant B.
-* **Auto-Tuning**: If the agent detects Variant A has a significantly higher reply rate, future campaign runs dynamically shift delivery weights to prioritize the winning style—minimizing human intervention.
+- Email: active via Resend (instant send after form submission).
+- WhatsApp: user-initiated deep link (wa.me with prefilled message).
+- Telegram: user-initiated bot start (deep link to bot).
 
-### 3. sentiment analysis & Audio Transcription (Groq Pipeline)
-When a prospect replies, REVARX AI reacts in milliseconds:
-* **Voice Note Transcription**: If the customer replies with a voice note, the audio is routed to **Groq Whisper (whisper-large-v3)** for instant, near-flawless text transcription.
-* **Groq LLaMA-3.1 Classifier**: The text (or transcript) is evaluated by LLaMA-3.1 to classify sentiment into four discrete categories: `hot` (high-intent), `warm` (later follow-up), `cold` (not interested), or `unsubscribe` (suppression).
-* **Owner Alerts**: When a **Hot** lead is detected, a Markdown alert is pushed to the business owner's personal Telegram chat instantly so they can hop into the chat while the lead is active.
+### A/B Learning Logic
 
----
+- Variant A: professional marketplace tone.
+- Variant B: friendly casual tone.
+- Weighted learning uses age group, gender, state, and product category.
+- Hot/warm replies boost the winning style; unsubscribes penalize it.
 
-## 🚀 Setup & Deployment Guide
+## Setup
 
-REVARX AI is built to be run easily by evaluators. It features a complete **Sandbox Simulation Mode** that allows you to test the entire application, database transitions, classifiers, and charts **100% locally with zero API key configuration**.
-
-### Local Installation
 ```bash
-# 1. Clone repository
-git clone https://github.com/mbvb1312/REVARX.git
-cd REVARX
-
-# 2. Initialize environment
 python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
-
-# 3. Install packages
+venv\Scripts\activate
 pip install -r requirements.txt
-
-# 4. Seed sample data (Pre-populates SQLite with 50 realistic historical leads)
 python seed_data.py
 ```
 
-### Launching the Application
+Start the backend:
 
-1. **Start the FastAPI Backend**:
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
-2. **Start the Streamlit Frontend** (In a new terminal window):
-   ```bash
-   streamlit run frontend/app.py
-   ```
-   Open your browser to **`http://localhost:8501`**.
+```bash
+uvicorn main:app --reload --port 8000
+```
 
----
+Start the frontend:
 
-## 🧪 Testing and Verification
+```bash
+streamlit run frontend/app.py
+```
 
-### Option A: Zero-Setup Sandbox Testing (No API Keys Needed)
-We have added a custom **Outbound Sandbox Simulator** on the homepage:
-1. Select a seeded lead (e.g. `Priya Sharma`) and select or type a mock reply.
-2. Click **"Simulate Incoming Reply Event"**.
-3. A balloon celebration will trigger. The FastAPI server will automatically classify the sentiment locally, update the SQLite DB, shift the lead status to `HOT`, and simulate owner alerts.
-4. Browse the **`📊 Analytics Dashboard`** and **`👥 Lead Status Board`** tabs to observe the Plotly charts and conversation inspectors updating dynamically in real-time.
+Open:
 
-### Option B: Production Integration (Active Keys)
-To enable live AI generation and real messenger hooks, configure the `.env` file in the root folder:
+```text
+http://localhost:8501
+```
+
+## Environment Variables
+
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-TELEGRAM_OWNER_CHAT_ID=your_personal_chat_id_here
-SENDGRID_API_KEY=your_sendgrid_api_key_here
-FROM_EMAIL=your_verified_sender@email.com
+GROQ_API_KEY=your_groq_key
+SAMBANOVA_API_KEY=your_sambanova_key
+GEMINI_API_KEY=optional_gemini_key
+RESEND_API_KEY=your_resend_key
+FROM_EMAIL=your_verified_resend_sender
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_BOT_USERNAME=your_telegram_bot_username
+WHATSAPP_BUSINESS_NUMBER=your_whatsapp_business_number
 DATABASE_URL=sqlite:///./leads.db
 ```
 
-#### Live Webhook Setup for Telegram:
-To allow real Telegram messages to trigger live webhooks during local testing:
-1. Expose your port 8000 using Ngrok:
-   ```bash
-   ngrok http 8000
-   ```
-2. Register the endpoint with Telegram (replace `<TOKEN>` and `<NGROK_URL>`):
-   ```bash
-   curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<NGROK_URL>/webhook"
-   ```
-3. Text your bot directly or send a voice note. The webhook will download the voice note, transcribe it using Groq Whisper, run LLaMA sentiment tagging, update the SQLite database, and push a live Markdown card to your personal phone!
+For Resend test mode, emails may only be allowed to your verified/testing recipient. Verify a sender domain for broader live sends.
 
----
+## CSV Columns
 
-## 🚢 Cloud Deployment Guidelines
+Recommended columns:
 
-For deployment to a cloud environment, REVARX AI is configured to scale easily:
-
-### 1. Dockerized Containerization
-A standard `Dockerfile` can package the FastAPI backend and Streamlit frontend in minutes:
-```dockerfile
-# Dockerfile snippet for unified demo container
-FROM python:3.10-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-EXPOSE 8000 8501
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 & streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0"]
+```text
+name,email,age,gender,state,product_viewed,product_category,notes
 ```
 
-### 2. PaaS Deployments (Render / Fly.io / AWS)
-* **Backend Hosting**: Deploy the FastAPI server to Render or Fly.io as a web service. Expose port 8000 and ensure the disk persists the `leads.db` file (or connect to a PostgreSQL database by modifying `DATABASE_URL` in env).
-* **Frontend Hosting**: Deploy the Streamlit app as a separate static/web service pointing its API fetch URLs to your live backend domain.
-* **Persistent Webhooks**: Ensure your backend domain uses HTTPS (Render/Fly.io provide this automatically) so that Telegram and Twilio webhook registries successfully deliver payload posts.
+TXT upload supports lines like:
+
+```text
+Priya Nair, priya@example.com, 28, female, Kerala, Nike Air Max 270, footwear, Viewed 3 times
+Rahul Verma, rahul@example.com, Samsung Galaxy S24 Ultra, Added to cart
+```
+
+## Main Endpoints
+
+- POST /leads: create one customer and send recovery email immediately.
+- POST /upload-leads: upload CSV/TXT and queue recovery emails.
+- GET /leads: live customer board data.
+- GET /leads/{id}/timeline: per-customer journey.
+- POST /simulate-reply: classify a reply and update A/B learning.
+- POST /leads/{id}/mark-no-response: mark no response for learning.
+- GET /analytics/demographics: demographic analytics.
+- GET /analytics/ab-by-demographics: A/B winner by demographic slice.

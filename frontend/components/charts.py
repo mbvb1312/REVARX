@@ -1,139 +1,140 @@
 import plotly.graph_objects as go
 
-def funnel_chart(sent: int, replied: int, hot: int) -> go.Figure:
-    """
-    Renders a stunning horizontal funnel chart.
-    """
-    fig = go.Figure(go.Funnel(
-        y=["Outreach Sent", "Replies Received", "Hot Leads 🔥"],
-        x=[sent, replied, hot],
-        textinfo="value+percent initial",
-        marker=dict(
-            color=["#636EFA", "#EF553B", "#00CC96"],
-            line=dict(width=1, color="#1E1E1E")
-        ),
-        connector=dict(fillcolor="rgba(100, 100, 100, 0.2)")
-    ))
-    
+COLOR_A = "#2563EB"
+COLOR_B = "#F97316"
+COLOR_GOOD = "#16A34A"
+COLOR_WARN = "#CA8A04"
+COLOR_BAD = "#DC2626"
+COLOR_MUTED = "#64748B"
+
+
+def _layout(fig: go.Figure, height: int = 320) -> go.Figure:
     fig.update_layout(
-        margin=dict(l=40, r=40, t=10, b=10),
-        height=320,
+        height=height,
+        margin=dict(l=20, r=20, t=35, b=25),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Outfit, Inter, sans-serif", size=12, color="#E0E0E0")
+        font=dict(family="Inter, sans-serif", size=12, color="#E5E7EB"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
+    fig.update_xaxes(gridcolor="rgba(148, 163, 184, 0.18)", zeroline=False)
+    fig.update_yaxes(gridcolor="rgba(148, 163, 184, 0.18)", zeroline=False)
     return fig
+
+
+def funnel_chart(sent: int, replied: int, recovered: int) -> go.Figure:
+    fig = go.Figure(
+        go.Funnel(
+            y=["Recovery emails sent", "Replies received", "Customers re-engaged"],
+            x=[sent, replied, recovered],
+            textinfo="value+percent initial",
+            marker=dict(color=[COLOR_A, COLOR_WARN, COLOR_GOOD]),
+            connector=dict(fillcolor="rgba(148, 163, 184, 0.2)"),
+        )
+    )
+    return _layout(fig, 320)
+
 
 def ab_bar_chart(a_rate: float, b_rate: float) -> go.Figure:
-    """
-    Renders Variant A vs Variant B reply rates.
-    """
-    fig = go.Figure(data=[
-        go.Bar(
-            name="Variant A (Direct)",
-            x=["Reply Rate (%)"],
-            y=[a_rate],
-            marker_color="#636EFA",
-            text=[f"{a_rate}%"],
-            textposition="auto"
-        ),
-        go.Bar(
-            name="Variant B (Contextual)",
-            x=["Reply Rate (%)"],
-            y=[b_rate],
-            marker_color="#EF553B",
-            text=[f"{b_rate}%"],
-            textposition="auto"
-        )
-    ])
-    
-    fig.update_layout(
-        yaxis=dict(
-            title="Conversion Rate (%)",
-            gridcolor="rgba(255, 255, 255, 0.1)",
-            zeroline=False
-        ),
-        barmode="group",
-        margin=dict(l=20, r=20, t=20, b=20),
-        height=320,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Outfit, Inter, sans-serif", size=12, color="#E0E0E0"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    fig = go.Figure(
+        data=[
+            go.Bar(
+                name="A: Professional",
+                x=["Conversion rate"],
+                y=[a_rate],
+                marker_color=COLOR_A,
+                text=[f"{a_rate}%"],
+                textposition="auto",
+            ),
+            go.Bar(
+                name="B: Friendly",
+                x=["Conversion rate"],
+                y=[b_rate],
+                marker_color=COLOR_B,
+                text=[f"{b_rate}%"],
+                textposition="auto",
+            ),
+        ]
     )
-    return fig
+    fig.update_layout(barmode="group")
+    fig.update_yaxes(title="Hot/warm conversion (%)")
+    return _layout(fig, 320)
+
 
 def hourly_heatmap(hourly_data: list) -> go.Figure:
-    """
-    Renders bar chart for hourly replies.
-    """
-    hours = [f"{h['hour']}:00" for h in hourly_data]
-    counts = [h["count"] for h in hourly_data]
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=hours,
-            y=counts,
-            marker=dict(
-                color=counts,
-                colorscale="Viridis",
-                showscale=False
-            ),
-            text=counts,
-            textposition="outside"
-        )
-    ])
-    
-    fig.update_layout(
-        xaxis=dict(title="Hour of Day", tickmode="linear"),
-        yaxis=dict(
-            title="Total Replies",
-            gridcolor="rgba(255, 255, 255, 0.1)",
-            zeroline=False
-        ),
-        margin=dict(l=20, r=20, t=30, b=20),
-        height=320,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Outfit, Inter, sans-serif", size=12, color="#E0E0E0")
+    hours = [f"{row['hour']}:00" for row in hourly_data]
+    counts = [row["count"] for row in hourly_data]
+    fig = go.Figure(
+        data=[
+            go.Bar(
+                x=hours,
+                y=counts,
+                marker=dict(color=counts, colorscale=[[0, COLOR_MUTED], [0.5, COLOR_WARN], [1, COLOR_GOOD]], showscale=False),
+                text=counts,
+                textposition="outside",
+            )
+        ]
     )
-    return fig
+    fig.update_xaxes(title="Hour")
+    fig.update_yaxes(title="Replies")
+    return _layout(fig, 320)
+
 
 def tone_performance_chart(tone_data: dict) -> go.Figure:
-    """
-    Renders horizontal bar chart for message tone performance.
-    """
-    tones = list(tone_data.keys())
-    rates = list(tone_data.values())
-    
-    # Capitalize names for formatting
-    display_tones = [t.capitalize() for t in tones]
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            y=display_tones,
-            x=rates,
-            orientation="h",
-            marker=dict(
-                color=["#00CC96", "#33a02c", "#EF553B"],
-                line=dict(width=1, color="#1E1E1E")
-            ),
-            text=[f"{r}%" for r in rates],
-            textposition="auto"
-        )
-    ])
-    
-    fig.update_layout(
-        xaxis=dict(
-            title="Reply Rate (%)",
-            gridcolor="rgba(255, 255, 255, 0.1)",
-            zeroline=False
-        ),
-        yaxis=dict(autorange="reversed"),
-        margin=dict(l=20, r=20, t=10, b=20),
-        height=320,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Outfit, Inter, sans-serif", size=12, color="#E0E0E0")
+    labels = []
+    values = []
+    for tone in ["professional", "friendly"]:
+        labels.append(tone.title())
+        values.append(tone_data.get(tone, 0))
+
+    fig = go.Figure(
+        data=[
+            go.Bar(
+                y=labels,
+                x=values,
+                orientation="h",
+                marker_color=[COLOR_A, COLOR_B],
+                text=[f"{value}%" for value in values],
+                textposition="auto",
+            )
+        ]
     )
-    return fig
+    fig.update_xaxes(title="Hot/warm conversion (%)")
+    return _layout(fig, 300)
+
+
+def demographic_ab_chart(rows: list, title: str = "") -> go.Figure:
+    rows = rows or []
+    segments = [str(row.get("segment", "Unknown")) for row in rows]
+    a_rates = [row.get("variant_a_rate", 0) for row in rows]
+    b_rates = [row.get("variant_b_rate", 0) for row in rows]
+
+    fig = go.Figure(
+        data=[
+            go.Bar(name="A: Professional", x=segments, y=a_rates, marker_color=COLOR_A, text=[f"{v}%" for v in a_rates]),
+            go.Bar(name="B: Friendly", x=segments, y=b_rates, marker_color=COLOR_B, text=[f"{v}%" for v in b_rates]),
+        ]
+    )
+    fig.update_layout(title=title, barmode="group")
+    fig.update_yaxes(title="Conversion (%)")
+    return _layout(fig, 360)
+
+
+def status_donut(status_counts: dict) -> go.Figure:
+    labels = ["Pending", "Hot", "Warm", "Cold", "No response", "Email failed", "Unsubscribed", "New"]
+    keys = ["pending", "hot", "warm", "cold", "no_response", "email_failed", "unsubscribed", "new"]
+    values = [status_counts.get(key, 0) for key in keys]
+    colors = [COLOR_WARN, COLOR_GOOD, "#84CC16", COLOR_A, COLOR_MUTED, COLOR_BAD, "#991B1B", "#14B8A6"]
+
+    fig = go.Figure(
+        data=[
+            go.Pie(
+                labels=labels,
+                values=values,
+                hole=0.55,
+                marker=dict(colors=colors),
+                textinfo="label+value",
+            )
+        ]
+    )
+    return _layout(fig, 320)

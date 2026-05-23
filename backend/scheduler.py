@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -12,7 +11,7 @@ def scan_and_send():
     Scans for pending messages and sends them.
     Called automatically by APScheduler every 30 mins.
     """
-    from backend.database import SessionLocal, Message, Lead
+    from backend.database import SessionLocal, Message, Lead, utc_now
     from channels.telegram_sender import send_telegram
     from channels.email_sender import send_email
 
@@ -41,13 +40,13 @@ def scan_and_send():
                     print(f"[scheduler] Missing Telegram chat ID for lead: {lead.name}")
             elif msg.channel == "email":
                 if lead.email:
-                    subject = msg.tone.capitalize() if msg.tone else "Re-connecting"
-                    success = send_email(lead.email, f"{subject} Follow-up", msg.content)
+                    subject = f"Still interested in {lead.product_viewed or lead.product_interest}?"
+                    success = send_email(lead.email, subject, msg.content)
                 else:
                     print(f"[scheduler] Missing email for lead: {lead.name}")
 
             msg.status = "sent" if success else "failed"
-            msg.sent_at = datetime.utcnow()
+            msg.sent_at = utc_now()
         db.commit()
     except Exception as exc:
         print(f"[scheduler] Error in scan_and_send: {exc}")

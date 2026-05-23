@@ -1,44 +1,71 @@
 import json
 import os
+from typing import Any
+
 from dotenv import load_dotenv
-import google.generativeai as genai
+
+try:
+    from google import genai
+    from google.genai import types
+except Exception:  # pragma: no cover - optional fallback dependency
+    genai = None
+    types = None
 
 load_dotenv()
 
-_API_KEY = os.getenv("GEMINI_API_KEY")
-if _API_KEY:
-    genai.configure(api_key=_API_KEY)
-
-_model = genai.GenerativeModel("gemini-1.5-flash")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+SAMBANOVA_MODEL = os.getenv("SAMBANOVA_MODEL", "Meta-Llama-3.3-70B-Instruct")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 
 SYSTEM_PROMPT = (
-    "You are a lead qualification assistant. "
-    "Classify lead intent and recommend a next step. "
-    "Return ONLY valid JSON."
+    "You analyze e-commerce abandoned browse/cart sessions. "
+    "Classify purchase intent and recommend the next recovery action. Return ONLY valid JSON."
 )
 
 USER_PROMPT_TEMPLATE = (
-    "Analyze the following lead and respond with JSON only.\n\n"
-    "Lead details:\n"
+    "Analyze this customer recovery opportunity.\n\n"
     "- Name: {name}\n"
-    "- Product interest: {product_interest}\n"
-    "- Last contact: {last_contact_date}\n"
-    "- Notes: {notes}\n\n"
-    "Return JSON in this format:\n"
-    "{\n"
+    "- Product viewed: {product_viewed}\n"
+    "- Product category: {product_category}\n"
+    "- Age: {age}\n"
+    "- Gender: {gender}\n"
+    "- State: {state}\n"
+    "- Browse/cart notes: {notes}\n\n"
+    "Return JSON:\n"
+    "{{\n"
     "  \"lead_score\": \"hot|warm|cold\",\n"
     "  \"follow_up\": \"Short next step recommendation\"\n"
-    "}"
+    "}}"
 )
 
 
+def _value(lead: Any, field: str, default: Any = "") -> Any:
+    if isinstance(lead, dict):
+        value = lead.get(field, default)
+    else:
+        value = getattr(lead, field, default)
+    return default if value is None else value
+
+
+def _context(lead: Any) -> dict:
+    product_viewed = _value(lead, "product_viewed") or _value(lead, "product_interest") or "unknown product"
+    return {
+        "name": _value(lead, "name", ""),
+        "product_viewed": product_viewed,
+        "product_category": _value(lead, "product_category", "unknown"),
+        "age": _value(lead, "age", "not provided"),
+        "gender": _value(lead, "gender", "not provided"),
+        "state": _value(lead, "state", "not provided"),
+        "notes": _value(lead, "notes", ""),
+    }
+
+
 def _extract_json(text: str) -> dict:
-    text = text.strip()
+    text = (text or "").strip()
     if text.startswith("```"):
-        text = text.strip("`")
+        text = text.strip("`").strip()
         if text.startswith("json"):
-            text = text[4:]
-    text = text.strip()
+            text = text[4:].strip()
 
     if text.startswith("{") and text.endswith("}"):
         return json.loads(text)
@@ -51,94 +78,83 @@ def _extract_json(text: str) -> dict:
     raise ValueError("No JSON object found")
 
 
-def analyze_lead(lead: dict) -> dict:
-    """
-    Analyzes and qualifies lead.
-    1st priority: Gemini 1.5 Flash.
-    2nd priority: Groq LLaMA-3.1 8B.
-    3rd priority: SambaNova LLaMA 3.1 405B (Smartest Open-Source).
-    """
-    prompt = USER_PROMPT_TEMPLATE.format(
-        name=lead.get("name", ""),
-        product_interest=lead.get("product_interest", ""),
-        last_contact_date=lead.get("last_contact_date", "some time ago"),
-        notes=lead.get("notes", ""),
-    )
+def _normalize(parsed: dict) -> dict:
+    lead_score = str(parsed.get("lead_score", "cold")).lower()
+    if lead_score not in {"hot", "warm", "cold"}:
+        lead_score = "cold"
+    return {
+        "lead_score": lead_score,
+        "follow_up": str(parsed.get("follow_up", "Send a personalized recovery email.")),
+    }
 
-    # 1. First priority: Gemini
-    if _API_KEY:
-        try:
-            response = _model.generate_content(
-                f"{SYSTEM_PROMPT}\n\n{prompt}",
-                generation_config=genai.types.GenerationConfig(temperature=0.2),
-            )
-            parsed = _extract_json(response.text)
-            lead_score = str(parsed.get("lead_score", "cold")).lower()
-            if lead_score not in {"hot", "warm", "cold"}:
-                lead_score = "cold"
-            return {
-                "lead_score": lead_score,
-                "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
-            }
-        except Exception as gemini_exc:
-            print(f"[lead_analyzer] Gemini 1.5 Flash failed, trying Groq fallback. Error: {gemini_exc}")
 
-    # 2. Second priority / Failover: Groq LLaMA-3.1 8B
-    groq_key = os.getenv("GROQ_API_KEY")
-    if groq_key:
+def _local_analyze(lead: Any) -> dict:
+    notes = str(_value(lead, "notes", "")).lower()
+    if any(term in notes for term in ["added to cart", "checkout", "viewed 3", "spent 12", "coupon"]):
+        return {"lead_score": "hot", "follow_up": "Send the recovery email immediately with a direct return-to-cart CTA."}
+    if any(term in notes for term in ["compared", "wishlist", "viewed"]):
+        return {"lead_score": "warm", "follow_up": "Send a helpful comparison-style recovery email."}
+    return {"lead_score": "cold", "follow_up": "Send a light reminder and avoid aggressive urgency."}
+
+
+def analyze_lead(lead: Any) -> dict:
+    prompt = USER_PROMPT_TEMPLATE.format(**_context(lead))
+
+    if os.getenv("GROQ_API_KEY"):
         try:
             from groq import Groq
-            client = Groq(api_key=groq_key)
+
+            client = Groq(api_key=os.getenv("GROQ_API_KEY"))
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=GROQ_MODEL,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.2,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
-            parsed = _extract_json(response.choices[0].message.content)
-            lead_score = str(parsed.get("lead_score", "cold")).lower()
-            if lead_score not in {"hot", "warm", "cold"}:
-                lead_score = "cold"
-            return {
-                "lead_score": lead_score,
-                "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
-            }
-        except Exception as groq_exc:
-            print(f"[lead_analyzer] Groq fallback failed, trying SambaNova. Error: {groq_exc}")
+            return _normalize(_extract_json(response.choices[0].message.content))
+        except Exception as exc:
+            print(f"[lead_analyzer] Groq failed, trying SambaNova. Error: {exc}")
 
-    # 3. Third priority / Failover: SambaNova LLaMA 3.1 405B (Smartest Open-Source)
-    sambanova_key = os.getenv("SAMBANOVA_API_KEY")
-    if sambanova_key:
+    if os.getenv("SAMBANOVA_API_KEY"):
         try:
             import requests
-            url = "https://api.sambanova.ai/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {sambanova_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": "Meta-Llama-3.1-405B-Instruct",
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.2
-            }
-            resp = requests.post(url, json=payload, headers=headers, timeout=10)
-            if resp.ok:
-                text = resp.json()["choices"][0]["message"]["content"]
-                parsed = _extract_json(text)
-                lead_score = str(parsed.get("lead_score", "cold")).lower()
-                if lead_score not in {"hot", "warm", "cold"}:
-                    lead_score = "cold"
-                return {
-                    "lead_score": lead_score,
-                    "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
-                }
-        except Exception as samba_exc:
-            print(f"[lead_analyzer] SambaNova fallback failed: {samba_exc}")
 
-    return {"lead_score": "cold", "follow_up": "Send a gentle follow-up."}
+            response = requests.post(
+                "https://api.sambanova.ai/v1/chat/completions",
+                json={
+                    "model": SAMBANOVA_MODEL,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.2,
+                },
+                headers={
+                    "Authorization": f"Bearer {os.getenv('SAMBANOVA_API_KEY')}",
+                    "Content-Type": "application/json",
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            return _normalize(_extract_json(response.json()["choices"][0]["message"]["content"]))
+        except Exception as exc:
+            print(f"[lead_analyzer] SambaNova failed, trying Gemini. Error: {exc}")
+
+    if os.getenv("GEMINI_API_KEY"):
+        try:
+            if not genai or not types:
+                raise RuntimeError("google-genai is not installed")
+            client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=f"{SYSTEM_PROMPT}\n\n{prompt}",
+                config=types.GenerateContentConfig(temperature=0.2, response_mime_type="application/json"),
+            )
+            return _normalize(_extract_json(response.text))
+        except Exception as exc:
+            print(f"[lead_analyzer] Gemini failed, using local analyzer. Error: {exc}")
+
+    return _local_analyze(lead)

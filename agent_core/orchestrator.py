@@ -1,9 +1,8 @@
 import random
 from typing import TypedDict, List
-from datetime import datetime
 from langgraph.graph import StateGraph, END
 
-from backend.database import SessionLocal, Lead, Message
+from backend.database import SessionLocal, Lead, Message, utc_now
 from agent_core.ab_tester import generate_ab_variants
 from channels.telegram_sender import send_telegram
 from channels.email_sender import send_email
@@ -18,11 +17,11 @@ class CampaignState(TypedDict):
 
 def load_leads(state: CampaignState) -> CampaignState:
     """
-    Query database for cold leads.
+    Query database for unsent abandoned customers.
     """
     db = SessionLocal()
     try:
-        cold_leads = db.query(Lead).filter(Lead.status == "cold").all()
+        cold_leads = db.query(Lead).filter(Lead.status.in_(["new", "cold", "email_failed"])).all()
         leads_list = []
         for lead in cold_leads:
             leads_list.append({
@@ -30,7 +29,12 @@ def load_leads(state: CampaignState) -> CampaignState:
                 "name": lead.name,
                 "email": lead.email,
                 "telegram_chat_id": lead.telegram_chat_id,
-                "product_interest": lead.product_interest,
+                "product_interest": lead.product_viewed or lead.product_interest,
+                "product_viewed": lead.product_viewed or lead.product_interest,
+                "product_category": lead.product_category,
+                "age": lead.age,
+                "gender": lead.gender,
+                "state": lead.state,
                 "last_contact_date": lead.last_contact_date or "some time ago",
                 "notes": lead.notes or ""
             })
@@ -43,7 +47,7 @@ def load_leads(state: CampaignState) -> CampaignState:
 
 def generate_messages(state: CampaignState) -> CampaignState:
     """
-    Loops through cold leads and calls A/B tester to generate variant A and B messages.
+    Loops through abandoned customers and generates professional/friendly variants.
     """
     db = SessionLocal()
     try:
@@ -89,14 +93,13 @@ def send_messages(state: CampaignState) -> CampaignState:
                     print(f"[orchestrator] Missing Telegram chat ID for lead {lead['name']}. Cannot send.")
             elif state["channel"] == "email":
                 if lead["email"]:
-                    subject = chosen_msg.tone.capitalize() if chosen_msg.tone else "Re-connecting"
-                    success = send_email(lead["email"], f"{subject} Follow-up", chosen_msg.content)
+                    success = send_email(lead["email"], f"Still interested in {lead['product_interest']}?", chosen_msg.content)
                 else:
                     print(f"[orchestrator] Missing email for lead {lead['name']}. Cannot send.")
 
             if success:
                 chosen_msg.status = "sent"
-                chosen_msg.sent_at = datetime.utcnow()
+                chosen_msg.sent_at = utc_now()
                 
                 # Update lead status to "pending" (awaiting reply)
                 db_lead = db.query(Lead).filter(Lead.id == lead["id"]).first()

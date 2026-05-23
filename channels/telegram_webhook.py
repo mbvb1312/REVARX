@@ -1,9 +1,8 @@
 import os
-from datetime import datetime
 from fastapi import APIRouter, Request
 from dotenv import load_dotenv
 
-from backend.database import SessionLocal, Lead, Reply, Message
+from backend.database import SessionLocal, Lead, Reply, Message, utc_now
 from agent_core.reply_classifier import classify_reply
 from channels.whisper_transcriber import transcribe_audio
 from channels.telegram_sender import send_hot_lead_alert
@@ -67,7 +66,7 @@ async def telegram_webhook(request: Request):
                     content=text,
                     is_voice_note=is_voice,
                     classification=classification,
-                    received_at=datetime.utcnow(),
+                    received_at=utc_now(),
                     llm_used=classifier_llm
                 )
                 db.add(reply)
@@ -100,14 +99,14 @@ async def download_telegram_file(file_id: str) -> bytes:
     async with httpx.AsyncClient() as client:
         # Get file path from Telegram api
         resp = await client.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}")
-        if not resp.ok:
+        if not resp.is_success:
             raise Exception(f"Failed to get file path from Telegram API: {resp.text}")
         
         file_path = resp.json()["result"]["file_path"]
         
         # Download physical file bytes
         file_resp = await client.get(f"https://api.telegram.org/file/bot{token}/{file_path}")
-        if not file_resp.ok:
+        if not file_resp.is_success:
             raise Exception(f"Failed to download file bytes from Telegram server: {file_resp.text}")
             
         return file_resp.content
