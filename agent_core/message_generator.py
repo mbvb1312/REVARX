@@ -63,8 +63,9 @@ def _extract_json(text: str) -> dict:
 def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegram") -> dict:
     """
     Generates a personalized reactivation message for a single lead.
-    First priority: Gemini 1.5 Flash.
-    Backup: Groq LLaMA-3.1 8B.
+    1st priority: Gemini 1.5 Flash.
+    2nd priority: Groq LLaMA-3.1 8B.
+    3rd priority: SambaNova LLaMA 3.3 70B (Balanced).
     """
     prompt = USER_PROMPT_TEMPLATE.format(
         name=lead.get("name", ""),
@@ -89,7 +90,7 @@ def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegra
                 "llm_used": "Google Gemini 1.5 Flash"
             }
         except Exception as gemini_exc:
-            print(f"[message_generator] Gemini 1.5 Flash failed, attempting Groq fallback. Error: {gemini_exc}")
+            print(f"[message_generator] Gemini 1.5 Flash failed, trying Groq fallback. Error: {gemini_exc}")
 
     # 2. Second priority / Failover: Groq LLaMA-3.1 8B
     groq_key = os.getenv("GROQ_API_KEY")
@@ -113,6 +114,36 @@ def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegra
                 "llm_used": "Groq LLaMA-3.1 8B"
             }
         except Exception as groq_exc:
-            print(f"[message_generator] Groq fallback failed: {groq_exc}")
+            print(f"[message_generator] Groq fallback failed, trying SambaNova. Error: {groq_exc}")
+
+    # 3. Third priority / Failover: SambaNova LLaMA 3.3 70B (Balanced & Fast)
+    sambanova_key = os.getenv("SAMBANOVA_API_KEY")
+    if sambanova_key:
+        try:
+            import requests
+            url = "https://api.sambanova.ai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {sambanova_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "Meta-Llama-3.3-70B-Instruct",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.8
+            }
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.ok:
+                text = resp.json()["choices"][0]["message"]["content"]
+                parsed = _extract_json(text)
+                return {
+                    "subject": str(parsed.get("subject", "")),
+                    "message": str(parsed.get("message", "")),
+                    "llm_used": "SambaNova LLaMA 3.3 70B"
+                }
+        except Exception as samba_exc:
+            print(f"[message_generator] SambaNova fallback failed: {samba_exc}")
 
     return {"subject": "", "message": ""}

@@ -54,8 +54,9 @@ def _extract_json(text: str) -> dict:
 def analyze_lead(lead: dict) -> dict:
     """
     Analyzes and qualifies lead.
-    First priority: Gemini 1.5 Flash.
-    Backup: Groq LLaMA-3.1 8B.
+    1st priority: Gemini 1.5 Flash.
+    2nd priority: Groq LLaMA-3.1 8B.
+    3rd priority: SambaNova LLaMA 3.1 405B (Smartest Open-Source).
     """
     prompt = USER_PROMPT_TEMPLATE.format(
         name=lead.get("name", ""),
@@ -80,7 +81,7 @@ def analyze_lead(lead: dict) -> dict:
                 "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
             }
         except Exception as gemini_exc:
-            print(f"[lead_analyzer] Gemini 1.5 Flash failed, attempting Groq fallback. Error: {gemini_exc}")
+            print(f"[lead_analyzer] Gemini 1.5 Flash failed, trying Groq fallback. Error: {gemini_exc}")
 
     # 2. Second priority / Failover: Groq LLaMA-3.1 8B
     groq_key = os.getenv("GROQ_API_KEY")
@@ -106,6 +107,38 @@ def analyze_lead(lead: dict) -> dict:
                 "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
             }
         except Exception as groq_exc:
-            print(f"[lead_analyzer] Groq fallback failed: {groq_exc}")
+            print(f"[lead_analyzer] Groq fallback failed, trying SambaNova. Error: {groq_exc}")
+
+    # 3. Third priority / Failover: SambaNova LLaMA 3.1 405B (Smartest Open-Source)
+    sambanova_key = os.getenv("SAMBANOVA_API_KEY")
+    if sambanova_key:
+        try:
+            import requests
+            url = "https://api.sambanova.ai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {sambanova_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "Meta-Llama-3.1-405B-Instruct",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.2
+            }
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.ok:
+                text = resp.json()["choices"][0]["message"]["content"]
+                parsed = _extract_json(text)
+                lead_score = str(parsed.get("lead_score", "cold")).lower()
+                if lead_score not in {"hot", "warm", "cold"}:
+                    lead_score = "cold"
+                return {
+                    "lead_score": lead_score,
+                    "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
+                }
+        except Exception as samba_exc:
+            print(f"[lead_analyzer] SambaNova fallback failed: {samba_exc}")
 
     return {"lead_score": "cold", "follow_up": "Send a gentle follow-up."}
