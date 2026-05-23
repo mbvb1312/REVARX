@@ -57,8 +57,8 @@ async def telegram_webhook(request: Request):
                 msg_id = msg.id if msg else None
 
                 # Classify the reply
-                classification = classify_reply(text)
-                print(f"[telegram_webhook] Classified reply from {lead.name} as '{classification}'")
+                classification, classifier_llm = classify_reply(text)
+                print(f"[telegram_webhook] Classified reply from {lead.name} as '{classification}' via {classifier_llm}")
 
                 # Store reply in DB
                 reply = Reply(
@@ -67,7 +67,8 @@ async def telegram_webhook(request: Request):
                     content=text,
                     is_voice_note=is_voice,
                     classification=classification,
-                    received_at=datetime.utcnow()
+                    received_at=datetime.utcnow(),
+                    llm_used=classifier_llm
                 )
                 db.add(reply)
 

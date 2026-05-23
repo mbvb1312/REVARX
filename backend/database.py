@@ -52,6 +52,7 @@ class Message(Base):
     tone = Column(String)
     status = Column(String, default="pending")
     sent_at = Column(TIMESTAMP)
+    llm_used = Column(String, default="Google Gemini 2.0 Flash")
 
 
 class Reply(Base):
@@ -64,6 +65,7 @@ class Reply(Base):
     is_voice_note = Column(Boolean, default=False)
     classification = Column(String)
     received_at = Column(TIMESTAMP, default=datetime.utcnow)
+    llm_used = Column(String, default="Google Gemini 2.0 Flash")
 
 
 def init_db() -> None:

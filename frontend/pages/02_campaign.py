@@ -33,6 +33,7 @@ for preview in st.session_state.previews:
                 key=f"a_{lead.get('id', '')}",
                 disabled=True,
             )
+            st.caption(f"⚡ **Generated via:** `{preview.get('variant_a', {}).get('llm_used', 'Google Gemini 2.0 Flash')}`")
         with col_b:
             st.markdown("Variant B")
             st.text_area(
@@ -42,6 +43,7 @@ for preview in st.session_state.previews:
                 key=f"b_{lead.get('id', '')}",
                 disabled=True,
             )
+            st.caption(f"⚡ **Generated via:** `{preview.get('variant_b', {}).get('llm_used', 'Google Gemini 2.0 Flash')}`")
 
 if st.button("Launch Campaign", type="primary"):
     payload = {"campaign_name": campaign_name, "tone": tone, "channel": channel}

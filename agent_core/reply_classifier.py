@@ -18,9 +18,11 @@ CLASSIFIER_PROMPT = (
 )
 
 
-def classify_reply(reply_text: str) -> str:
+def classify_reply(reply_text: str) -> tuple[str, str]:
     """
     Classifies a reply text into one of: 'hot', 'warm', 'cold', 'unsubscribe'.
+    Returns (classification_string, llm_used_string).
+    
     First priority: Gemini 2.0 Flash.
     Backup: Groq LLaMA-3.1 8B.
     Local Fallback: Rule-based keyword checks.
@@ -37,7 +39,7 @@ def classify_reply(reply_text: str) -> str:
             )
             result = response.text.strip().lower().replace(".", "").replace('"', '').replace("'", "")
             if result in {"hot", "warm", "cold", "unsubscribe"}:
-                return result
+                return result, "Google Gemini 2.0 Flash"
         except Exception as gemini_exc:
             print(f"[reply_classifier] Gemini classification failed, trying Groq. Error: {gemini_exc}")
 
@@ -58,17 +60,17 @@ def classify_reply(reply_text: str) -> str:
             )
             result = response.choices[0].message.content.strip().lower().replace(".", "").replace('"', '').replace("'", "")
             if result in {"hot", "warm", "cold", "unsubscribe"}:
-                return result
+                return result, "Groq LLaMA-3.1 8B"
         except Exception as groq_exc:
             print(f"[reply_classifier] Groq classification failed: {groq_exc}")
 
     # Local Heuristics Fallback (guarantees uptime even under zero internet or api outages)
     txt = reply_text.lower()
     if any(w in txt for w in ["yes", "interest", "call", "schedule", "talk", "demo", "pricing", "pricing", "cost"]):
-        return "hot"
+        return "hot", "Steps AI Local Heuristics"
     elif any(w in txt for w in ["maybe", "later", "next month", "remind"]):
-        return "warm"
+        return "warm", "Steps AI Local Heuristics"
     elif any(w in txt for w in ["stop", "remove", "unsubscribe", "don't"]):
-        return "unsubscribe"
+        return "unsubscribe", "Steps AI Local Heuristics"
 
-    return "cold"
+    return "cold", "Steps AI Local Heuristics"

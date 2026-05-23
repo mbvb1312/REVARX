@@ -32,6 +32,7 @@ def generate_ab_variants(
             channel=channel,
             tone=tone,
             status="pending",
+            llm_used=variant_a.get("llm_used", "Google Gemini 2.0 Flash")
         )
         msg_b = Message(
             lead_id=lead["id"],
@@ -41,6 +42,7 @@ def generate_ab_variants(
             channel=channel,
             tone=tone,
             status="pending",
+            llm_used=variant_b.get("llm_used", "Google Gemini 2.0 Flash")
         )
 
         db.add_all([msg_a, msg_b])

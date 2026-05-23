@@ -27,7 +27,9 @@ def fetch_leads_data():
             "classification": "hot",
             "outreach_sent": "Hi Priya Sharma, just checking in about our CRM Software. We noticed you registered for our webinar a few months back. Would you be open to a quick 5-minute chat this Thursday?",
             "variant": "A",
-            "notes": "Attended webinar"
+            "notes": "Attended webinar",
+            "msg_llm": "Google Gemini 2.0 Flash",
+            "reply_llm": "Groq LLaMA-3.1 8B"
         },
         {
             "id": 2,
@@ -40,7 +42,9 @@ def fetch_leads_data():
             "classification": "warm",
             "outreach_sent": "Hi Rahul, following up on your inquiry about our Inventory Management suite. Has your team had a chance to look over the trial?",
             "variant": "B",
-            "notes": "Trial expired"
+            "notes": "Trial expired",
+            "msg_llm": "Groq LLaMA-3.1 8B",
+            "reply_llm": "Google Gemini 2.0 Flash"
         },
         {
             "id": 3,
@@ -53,7 +57,9 @@ def fetch_leads_data():
             "classification": "cold",
             "outreach_sent": "Hi Ananya, hope you are doing well! Just wanted to share our new automated HR features that integrate with your pipeline. Do you have a quick minute?",
             "variant": "A",
-            "notes": "Requested pricing"
+            "notes": "Requested pricing",
+            "msg_llm": "Google Gemini 2.0 Flash",
+            "reply_llm": "Steps AI Local Heuristics"
         },
         {
             "id": 4,
@@ -66,7 +72,9 @@ def fetch_leads_data():
             "classification": "unsubscribe",
             "outreach_sent": "Hi Arjun, wanted to check if you are still looking to launch your online Shopify store?",
             "variant": "B",
-            "notes": "Asked about integration"
+            "notes": "Asked about integration",
+            "msg_llm": "Steps AI Local Sandbox",
+            "reply_llm": "Steps AI Local Sandbox"
         },
         {
             "id": 5,
@@ -79,7 +87,9 @@ def fetch_leads_data():
             "classification": "hot",
             "outreach_sent": "Hi Meera, checking in on our Productivity Suite. Let me know if you would like me to set up a personalized demo.",
             "variant": "A",
-            "notes": "Requested demo call"
+            "notes": "Requested demo call",
+            "msg_llm": "Google Gemini 2.0 Flash",
+            "reply_llm": "Groq LLaMA-3.1 8B"
         }
     ]
     # Expand to make up 50 dummy leads for metric display
@@ -195,6 +205,7 @@ if not conversational_leads.empty:
         st.success("🤖 Re-engagement Outreach Timeline")
         st.markdown(f"**Outreach Message Sent (A/B Variant {lead_detail.get('variant', 'A')}):**")
         st.write(lead_detail.get("outreach_sent", "N/A"))
+        st.caption(f"⚡ **Outreach LLM Used:** `{lead_detail.get('msg_llm', 'Google Gemini 2.0 Flash')}`")
         
         st.markdown("---")
         
@@ -203,6 +214,7 @@ if not conversational_leads.empty:
         
         st.markdown("---")
         classification = lead_detail.get("classification", "cold")
-        st.markdown(f"**Sentiment Classification (LLaMA-3.1):** `{classification.upper()}`")
+        st.markdown(f"**Sentiment Classification:** `{classification.upper()}`")
+        st.caption(f"⚡ **Classifier LLM Used:** `{lead_detail.get('reply_llm', 'Google Gemini 2.0 Flash')}`")
 else:
     st.write("No leads in the current filtered set have conversations/replies to inspect.")

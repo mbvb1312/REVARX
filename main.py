@@ -136,11 +136,13 @@ def generate_previews(campaign: CampaignRun, db=Depends(get_db)):
             # High-fidelity mock re-engagement copy fallback for zero-setup demo
             variant_a = {
                 "subject": f"Quick question about {lead.product_interest} for {lead.name}",
-                "message": f"Hi {lead.name}, hope your week is off to a great start! I was looking over your interest in our {lead.product_interest} from a few months back. Are you still seeking a solution for this? Let me know if you are open to a brief chat."
+                "message": f"Hi {lead.name}, hope your week is off to a great start! I was looking over your interest in our {lead.product_interest} from a few months back. Are you still seeking a solution for this? Let me know if you are open to a brief chat.",
+                "llm_used": "Steps AI Local Sandbox"
             }
             variant_b = {
                 "subject": f"Checking in regarding {lead.product_interest}",
-                "message": f"Hi {lead.name}, quick follow-up on your trial of {lead.product_interest}. I noticed you were interested in integrations. Would it be helpful to hop on a quick 5-minute screen share to explore this together?"
+                "message": f"Hi {lead.name}, quick follow-up on your trial of {lead.product_interest}. I noticed you were interested in integrations. Would it be helpful to hop on a quick 5-minute screen share to explore this together?",
+                "llm_used": "Steps AI Local Sandbox"
             }
 
         previews.append({
@@ -200,7 +202,8 @@ def run_campaign_endpoint(campaign_req: CampaignRun, db=Depends(get_db)):
             channel=campaign_req.channel,
             tone=campaign_req.tone,
             status="sent",
-            sent_at=datetime.utcnow()
+            sent_at=datetime.utcnow(),
+            llm_used="Steps AI Local Sandbox"
         )
         db.add(db_msg)
         lead.status = "pending"  # Awaiting reply
@@ -244,15 +247,18 @@ def simulate_reply(sim: ReplySimulation, db=Depends(get_db)):
 
     # Load Groq key to classify
     groq_key = os.getenv("GROQ_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
     classification = "cold"
+    classifier_llm = "Steps AI Local Sandbox"
 
-    if groq_key:
+    if groq_key or gemini_key:
         try:
             from agent_core.reply_classifier import classify_reply
-            classification = classify_reply(sim.content)
+            classification, classifier_llm = classify_reply(sim.content)
         except Exception:
             pass
-    else:
+    
+    if not groq_key and not gemini_key:
         # High fidelity local text classifier fallback if no key
         txt = sim.content.lower()
         if any(w in txt for w in ["yes", "interest", "call", "schedule", "talk", "demo", "pricing", "pricing", "cost"]):
@@ -261,6 +267,7 @@ def simulate_reply(sim: ReplySimulation, db=Depends(get_db)):
             classification = "warm"
         elif any(w in txt for w in ["stop", "remove", "unsubscribe", "don't"]):
             classification = "unsubscribe"
+        classifier_llm = "Steps AI Local Heuristics"
 
     # Add the reply record
     db_reply = Reply(
@@ -269,7 +276,8 @@ def simulate_reply(sim: ReplySimulation, db=Depends(get_db)):
         content=sim.content,
         is_voice_note=sim.is_voice_note,
         classification=classification,
-        received_at=datetime.utcnow()
+        received_at=datetime.utcnow(),
+        llm_used=classifier_llm
     )
     db.add(db_reply)
 

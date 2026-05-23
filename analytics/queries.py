@@ -111,13 +111,22 @@ def get_all_leads_with_status() -> list:
     with engine.connect() as conn:
         rows = conn.execute(text("""
             SELECT 
-                l.id, l.name, l.email, l.product_interest, l.status, l.last_contact_date,
+                l.id, l.name, l.email, l.product_interest, l.status, l.last_contact_date, l.notes,
                 r.content as latest_reply,
-                r.classification
+                r.classification,
+                r.llm_used as reply_llm,
+                m.content as outreach_sent,
+                m.variant,
+                m.llm_used as msg_llm
             FROM leads l
             LEFT JOIN replies r ON r.lead_id = l.id
                 AND r.received_at = (
                     SELECT MAX(received_at) FROM replies WHERE lead_id = l.id
+                )
+            LEFT JOIN messages m ON m.lead_id = l.id
+                AND m.status = 'sent'
+                AND m.id = (
+                    SELECT MAX(id) FROM messages WHERE lead_id = l.id AND status = 'sent'
                 )
             ORDER BY 
                 CASE l.status 
