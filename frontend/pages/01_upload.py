@@ -52,6 +52,10 @@ CATEGORIES = ["electronics", "fashion", "footwear", "accessories", "home_applian
 
 st.title("Live Demo: Add Abandoned Customers")
 st.markdown("Add one customer for an instant recovery email, or upload CSV/TXT files for a bulk live campaign.")
+st.info(
+    "Evaluation workflow: add a customer, send a recovery email, trigger WhatsApp or Telegram opt-in, "
+    "simulate or receive a reply, and review status plus A/B learning on the dashboard."
+)
 
 tab_single, tab_bulk = st.tabs(["Single customer instant test", "Bulk CSV/TXT upload"])
 
