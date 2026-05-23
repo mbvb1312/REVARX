@@ -43,6 +43,29 @@ async def telegram_webhook(request: Request):
             # Ignore empty messages, stickers, documents, etc.
             return {"ok": True}
 
+        if text.startswith("/start"):
+            db = SessionLocal()
+            try:
+                payload = text.split(maxsplit=1)[1] if " " in text else ""
+                lead_id = None
+                if payload.startswith("lead-"):
+                    try:
+                        lead_id = int(payload.replace("lead-", ""))
+                    except ValueError:
+                        lead_id = None
+                elif payload.isdigit():
+                    lead_id = int(payload)
+
+                if lead_id:
+                    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+                    if lead:
+                        lead.telegram_chat_id = chat_id
+                        db.commit()
+                        print(f"[telegram_webhook] Linked chat_id {chat_id} to lead {lead.id}.")
+            finally:
+                db.close()
+            return {"ok": True}
+
         # database lookup and transition handling
         db = SessionLocal()
         try:

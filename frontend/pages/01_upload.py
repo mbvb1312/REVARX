@@ -79,6 +79,7 @@ with tab_single:
         payload = {
             "name": name,
             "email": email,
+            "phone": None,
             "age": int(age),
             "gender": gender,
             "state": state,
@@ -96,6 +97,23 @@ with tab_single:
                     f"Email sent: {data.get('email_sent')}."
                 )
                 st.info(f"LLM used: {data.get('llm_used')} | Reason: {data.get('selection_reason')}")
+
+                whatsapp_link = data.get("whatsapp_link")
+                telegram_link = data.get("telegram_link")
+                if whatsapp_link or telegram_link:
+                    st.subheader("Continue conversation")
+                    st.caption("These channels require the user to click the link and start the chat.")
+                    col_w, col_t = st.columns(2)
+                    with col_w:
+                        if whatsapp_link:
+                            st.link_button("Continue on WhatsApp", whatsapp_link)
+                        else:
+                            st.info("WhatsApp link not configured.")
+                    with col_t:
+                        if telegram_link:
+                            st.link_button("Continue on Telegram", telegram_link)
+                        else:
+                            st.info("Telegram link not configured.")
             else:
                 st.error(response.text)
         except Exception as exc:

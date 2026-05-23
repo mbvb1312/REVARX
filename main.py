@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -27,6 +28,8 @@ from backend.database import Campaign, Lead, Message, Reply, SessionLocal, get_d
 from backend.models import LeadCreate
 from backend.scheduler import start_scheduler, stop_scheduler
 from channels.email_sender import send_email
+from channels.telegram_links import build_telegram_link
+from channels.whatsapp_links import build_whatsapp_link
 
 load_dotenv()
 
@@ -219,7 +222,18 @@ def create_lead(lead: LeadCreate, db=Depends(get_db)):
     result = send_recovery_email_for_lead(db_lead.id)
     if not result.get("ok"):
         raise HTTPException(status_code=500, detail=result.get("error", "Recovery email failed"))
-    return result
+    whatsapp_message = f"Hi, I was looking at {product_viewed}. Can you share more details?"
+    whatsapp_link = build_whatsapp_link(whatsapp_message, os.getenv("WHATSAPP_BUSINESS_NUMBER", ""))
+    telegram_payload = f"lead-{db_lead.id}"
+    telegram_link = build_telegram_link(os.getenv("TELEGRAM_BOT_USERNAME", ""), telegram_payload)
+
+    return {
+        **result,
+        "whatsapp_link": whatsapp_link,
+        "telegram_link": telegram_link,
+        "telegram_payload": telegram_payload,
+        "opt_in_note": "WhatsApp and Telegram require the user to click the link and start the chat.",
+    }
 
 
 @app.get("/leads")
