@@ -1,6 +1,5 @@
 import json
 import os
-
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -53,6 +52,11 @@ def _extract_json(text: str) -> dict:
 
 
 def analyze_lead(lead: dict) -> dict:
+    """
+    Analyzes and qualifies lead.
+    First priority: Gemini 2.0 Flash.
+    Backup: Groq LLaMA-3.1 8B.
+    """
     prompt = USER_PROMPT_TEMPLATE.format(
         name=lead.get("name", ""),
         product_interest=lead.get("product_interest", ""),
@@ -60,19 +64,48 @@ def analyze_lead(lead: dict) -> dict:
         notes=lead.get("notes", ""),
     )
 
-    try:
-        response = _model.generate_content(
-            f"{SYSTEM_PROMPT}\n\n{prompt}",
-            generation_config=genai.types.GenerationConfig(temperature=0.2),
-        )
-        parsed = _extract_json(response.text)
-        lead_score = str(parsed.get("lead_score", "cold")).lower()
-        if lead_score not in {"hot", "warm", "cold"}:
-            lead_score = "cold"
-        return {
-            "lead_score": lead_score,
-            "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
-        }
-    except Exception as exc:
-        print(f"[lead_analyzer] Error: {exc}")
-        return {"lead_score": "cold", "follow_up": "Send a gentle follow-up."}
+    # 1. First priority: Gemini
+    if _API_KEY:
+        try:
+            response = _model.generate_content(
+                f"{SYSTEM_PROMPT}\n\n{prompt}",
+                generation_config=genai.types.GenerationConfig(temperature=0.2),
+            )
+            parsed = _extract_json(response.text)
+            lead_score = str(parsed.get("lead_score", "cold")).lower()
+            if lead_score not in {"hot", "warm", "cold"}:
+                lead_score = "cold"
+            return {
+                "lead_score": lead_score,
+                "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
+            }
+        except Exception as gemini_exc:
+            print(f"[lead_analyzer] Gemini failed, attempting Groq fallback. Error: {gemini_exc}")
+
+    # 2. Second priority / Failover: Groq LLaMA-3.1 8B
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        try:
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2,
+                response_format={"type": "json_object"}
+            )
+            parsed = _extract_json(response.choices[0].message.content)
+            lead_score = str(parsed.get("lead_score", "cold")).lower()
+            if lead_score not in {"hot", "warm", "cold"}:
+                lead_score = "cold"
+            return {
+                "lead_score": lead_score,
+                "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
+            }
+        except Exception as groq_exc:
+            print(f"[lead_analyzer] Groq fallback failed: {groq_exc}")
+
+    return {"lead_score": "cold", "follow_up": "Send a gentle follow-up."}

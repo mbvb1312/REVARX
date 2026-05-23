@@ -1,6 +1,5 @@
 import json
 import os
-
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -64,8 +63,8 @@ def _extract_json(text: str) -> dict:
 def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegram") -> dict:
     """
     Generates a personalized reactivation message for a single lead.
-
-    Returns a dict with keys: subject, message.
+    First priority: Gemini 2.0 Flash.
+    Backup: Groq LLaMA-3.1 8B.
     """
     prompt = USER_PROMPT_TEMPLATE.format(
         name=lead.get("name", ""),
@@ -76,17 +75,42 @@ def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegra
         channel=channel,
     )
 
-    try:
-        response = _model.generate_content(
-            f"{SYSTEM_PROMPT}\n\n{prompt}",
-            generation_config=genai.types.GenerationConfig(temperature=0.8),
-        )
-        parsed = _extract_json(response.text)
-        return {
-            "subject": str(parsed.get("subject", "")),
-            "message": str(parsed.get("message", "")),
-        }
-    except Exception as exc:
-        lead_name = lead.get("name", "unknown")
-        print(f"[message_generator] Error for lead {lead_name}: {exc}")
-        return {"subject": "", "message": ""}
+    # 1. First priority: Gemini
+    if _API_KEY:
+        try:
+            response = _model.generate_content(
+                f"{SYSTEM_PROMPT}\n\n{prompt}",
+                generation_config=genai.types.GenerationConfig(temperature=0.8),
+            )
+            parsed = _extract_json(response.text)
+            return {
+                "subject": str(parsed.get("subject", "")),
+                "message": str(parsed.get("message", "")),
+            }
+        except Exception as gemini_exc:
+            print(f"[message_generator] Gemini failed, attempting Groq fallback. Error: {gemini_exc}")
+
+    # 2. Second priority / Failover: Groq LLaMA-3.1 8B
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        try:
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,
+                response_format={"type": "json_object"}
+            )
+            parsed = _extract_json(response.choices[0].message.content)
+            return {
+                "subject": str(parsed.get("subject", "")),
+                "message": str(parsed.get("message", "")),
+            }
+        except Exception as groq_exc:
+            print(f"[message_generator] Groq fallback failed: {groq_exc}")
+
+    return {"subject": "", "message": ""}
