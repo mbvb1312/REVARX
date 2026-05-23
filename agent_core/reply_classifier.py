@@ -9,7 +9,7 @@ _gemini_key = os.getenv("GEMINI_API_KEY")
 if _gemini_key:
     genai.configure(api_key=_gemini_key)
 
-_model = genai.GenerativeModel("gemini-2.0-flash")
+_model = genai.GenerativeModel("gemini-1.5-flash")
 
 CLASSIFIER_PROMPT = (
     "You are classifying a sales reply message into exactly one category: "
@@ -23,7 +23,7 @@ def classify_reply(reply_text: str) -> tuple[str, str]:
     Classifies a reply text into one of: 'hot', 'warm', 'cold', 'unsubscribe'.
     Returns (classification_string, llm_used_string).
     
-    First priority: Gemini 2.0 Flash.
+    First priority: Gemini 1.5 Flash.
     Backup: Groq LLaMA-3.1 8B.
     Local Fallback: Rule-based keyword checks.
     """
@@ -39,9 +39,9 @@ def classify_reply(reply_text: str) -> tuple[str, str]:
             )
             result = response.text.strip().lower().replace(".", "").replace('"', '').replace("'", "")
             if result in {"hot", "warm", "cold", "unsubscribe"}:
-                return result, "Google Gemini 2.0 Flash"
+                return result, "Google Gemini 1.5 Flash"
         except Exception as gemini_exc:
-            print(f"[reply_classifier] Gemini classification failed, trying Groq. Error: {gemini_exc}")
+            print(f"[reply_classifier] Gemini 1.5 Flash classification failed, trying Groq. Error: {gemini_exc}")
 
     # 2nd Priority / Backup: Groq LLaMA
     groq_key = os.getenv("GROQ_API_KEY")

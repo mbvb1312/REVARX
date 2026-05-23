@@ -9,7 +9,7 @@ _API_KEY = os.getenv("GEMINI_API_KEY")
 if _API_KEY:
     genai.configure(api_key=_API_KEY)
 
-_model = genai.GenerativeModel("gemini-2.0-flash")
+_model = genai.GenerativeModel("gemini-1.5-flash")
 
 SYSTEM_PROMPT = (
     "You are a skilled sales copywriter helping a business re-engage cold leads.\n"
@@ -63,7 +63,7 @@ def _extract_json(text: str) -> dict:
 def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegram") -> dict:
     """
     Generates a personalized reactivation message for a single lead.
-    First priority: Gemini 2.0 Flash.
+    First priority: Gemini 1.5 Flash.
     Backup: Groq LLaMA-3.1 8B.
     """
     prompt = USER_PROMPT_TEMPLATE.format(
@@ -86,9 +86,10 @@ def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegra
             return {
                 "subject": str(parsed.get("subject", "")),
                 "message": str(parsed.get("message", "")),
+                "llm_used": "Google Gemini 1.5 Flash"
             }
         except Exception as gemini_exc:
-            print(f"[message_generator] Gemini failed, attempting Groq fallback. Error: {gemini_exc}")
+            print(f"[message_generator] Gemini 1.5 Flash failed, attempting Groq fallback. Error: {gemini_exc}")
 
     # 2. Second priority / Failover: Groq LLaMA-3.1 8B
     groq_key = os.getenv("GROQ_API_KEY")
@@ -109,6 +110,7 @@ def generate_message(lead: dict, tone: str = "friendly", channel: str = "telegra
             return {
                 "subject": str(parsed.get("subject", "")),
                 "message": str(parsed.get("message", "")),
+                "llm_used": "Groq LLaMA-3.1 8B"
             }
         except Exception as groq_exc:
             print(f"[message_generator] Groq fallback failed: {groq_exc}")

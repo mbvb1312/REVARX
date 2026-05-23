@@ -9,7 +9,7 @@ _API_KEY = os.getenv("GEMINI_API_KEY")
 if _API_KEY:
     genai.configure(api_key=_API_KEY)
 
-_model = genai.GenerativeModel("gemini-2.0-flash")
+_model = genai.GenerativeModel("gemini-1.5-flash")
 
 SYSTEM_PROMPT = (
     "You are a lead qualification assistant. "
@@ -54,7 +54,7 @@ def _extract_json(text: str) -> dict:
 def analyze_lead(lead: dict) -> dict:
     """
     Analyzes and qualifies lead.
-    First priority: Gemini 2.0 Flash.
+    First priority: Gemini 1.5 Flash.
     Backup: Groq LLaMA-3.1 8B.
     """
     prompt = USER_PROMPT_TEMPLATE.format(
@@ -80,7 +80,7 @@ def analyze_lead(lead: dict) -> dict:
                 "follow_up": str(parsed.get("follow_up", "Send a gentle follow-up.")),
             }
         except Exception as gemini_exc:
-            print(f"[lead_analyzer] Gemini failed, attempting Groq fallback. Error: {gemini_exc}")
+            print(f"[lead_analyzer] Gemini 1.5 Flash failed, attempting Groq fallback. Error: {gemini_exc}")
 
     # 2. Second priority / Failover: Groq LLaMA-3.1 8B
     groq_key = os.getenv("GROQ_API_KEY")
