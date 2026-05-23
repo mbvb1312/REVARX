@@ -57,6 +57,31 @@ st.info(
     "simulate or receive a reply, and review status plus A/B learning on the dashboard."
 )
 
+st.markdown(
+    """
+    <style>
+    .wa-panel {
+        background: #0b3d2e;
+        border: 1px solid #1f6f54;
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+    .wa-title { color: #ecfdf3; font-weight: 600; margin-bottom: 6px; }
+    .wa-note { color: #a7f3d0; font-size: 0.86rem; margin-bottom: 8px; }
+    .wa-btn {
+        display: inline-block;
+        background: #22c55e;
+        color: #0b3d2e;
+        padding: 8px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 tab_single, tab_bulk = st.tabs(["Single customer instant test", "Bulk CSV/TXT upload"])
 
 with tab_single:
@@ -110,12 +135,25 @@ with tab_single:
                     col_w, col_t = st.columns(2)
                     with col_w:
                         if whatsapp_link:
-                            st.link_button("Continue on WhatsApp", whatsapp_link)
+                            st.markdown(
+                                f"""
+                                <div class="wa-panel">
+                                    <div class="wa-title">WhatsApp opt-in</div>
+                                    <div class="wa-note">
+                                        To automate WhatsApp messaging, link a WhatsApp Business account. For now, click below
+                                        to open WhatsApp with a prefilled message and send it manually.
+                                    </div>
+                                    <a class="wa-btn" href="{whatsapp_link}" target="_blank">Continue on WhatsApp</a>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
+                            )
                         else:
                             st.info("WhatsApp link not configured.")
                     with col_t:
                         if telegram_link:
                             st.link_button("Continue on Telegram", telegram_link)
+                            st.caption("Click Start to opt in. The AI will send a personalized message immediately.")
                         else:
                             st.info("Telegram link not configured.")
             else:

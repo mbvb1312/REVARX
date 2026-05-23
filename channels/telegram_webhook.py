@@ -3,9 +3,11 @@ from fastapi import APIRouter, Request
 from dotenv import load_dotenv
 
 from backend.database import SessionLocal, Lead, Reply, Message, utc_now
+from agent_core.ab_tester import recommend_variant_for_lead
+from agent_core.message_generator import generate_message
 from agent_core.reply_classifier import classify_reply
 from channels.whisper_transcriber import transcribe_audio
-from channels.telegram_sender import send_hot_lead_alert
+from channels.telegram_sender import send_hot_lead_alert, send_telegram
 
 load_dotenv()
 router = APIRouter()
@@ -60,8 +62,45 @@ async def telegram_webhook(request: Request):
                     lead = db.query(Lead).filter(Lead.id == lead_id).first()
                     if lead:
                         lead.telegram_chat_id = chat_id
+
+                        lead_dict = {
+                            "id": lead.id,
+                            "name": lead.name,
+                            "product_viewed": lead.product_viewed or lead.product_interest,
+                            "product_interest": lead.product_interest,
+                            "product_category": lead.product_category,
+                            "age": lead.age,
+                            "gender": lead.gender,
+                            "state": lead.state,
+                            "notes": lead.notes,
+                            "last_contact_date": lead.last_contact_date,
+                        }
+                        recommendation = recommend_variant_for_lead(lead, db)
+                        variant = recommendation.get("variant", "B")
+                        generated = generate_message(lead_dict, variant=variant, channel="telegram")
+                        message_text = (generated.get("message") or "").strip()
+
+                        msg_record = Message(
+                            lead_id=lead.id,
+                            campaign_id=None,
+                            variant=variant,
+                            content=message_text,
+                            channel="telegram",
+                            tone="professional" if variant == "A" else "friendly",
+                            status="pending",
+                            llm_used=generated.get("llm_used", "REVARX Local Template"),
+                        )
+                        db.add(msg_record)
+                        db.flush()
+
+                        if message_text:
+                            sent = send_telegram(chat_id, message_text)
+                            msg_record.status = "sent" if sent else "failed"
+                            msg_record.sent_at = utc_now()
+                            lead.status = "pending" if sent else "email_failed"
+
                         db.commit()
-                        print(f"[telegram_webhook] Linked chat_id {chat_id} to lead {lead.id}.")
+                        print(f"[telegram_webhook] Linked chat_id {chat_id} to lead {lead.id} and sent intro message.")
             finally:
                 db.close()
             return {"ok": True}
