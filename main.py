@@ -175,15 +175,18 @@ async def upload_leads(background_tasks: BackgroundTasks, file: UploadFile = Fil
         campaign = _create_campaign(db, f"Bulk Recovery Upload - {file.filename}", channel="email")
         db.commit()
 
-        for lead_id in stats["lead_ids"]:
+        email_lead_ids = stats.get("email_lead_ids", stats["lead_ids"])
+        for lead_id in email_lead_ids:
             background_tasks.add_task(send_recovery_email_for_lead, lead_id, campaign.id)
 
         return {
             "inserted": stats["inserted"],
             "skipped": stats["skipped"],
-            "emails_queued": len(stats["lead_ids"]),
+            "customers_tracked": len(stats["lead_ids"]),
+            "emails_queued": len(email_lead_ids),
+            "phone_only": stats.get("phone_only", 0),
             "campaign_id": campaign.id,
-            "message": "Customers imported. Recovery emails are being generated and sent in the background.",
+            "message": "Customers imported. Recovery emails are queued for rows with email addresses; phone-only rows are tracked for future WhatsApp/Telegram follow-up.",
         }
     except ValueError as val_err:
         raise HTTPException(status_code=400, detail=str(val_err))

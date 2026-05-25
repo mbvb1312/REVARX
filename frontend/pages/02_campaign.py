@@ -1,20 +1,53 @@
+import sys
+from pathlib import Path
+
 import requests
 import streamlit as st
 
-API_URL = "http://localhost:8000"
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
-st.title("Recovery Campaigns")
-st.markdown("Preview Professional vs Friendly recovery copy, then queue a background email campaign.")
+from frontend.components.ui import API_URL, escape, hero, inject_global_css, render_sidebar
 
-campaign_name = st.text_input("Campaign name", "Live E-commerce Recovery Campaign")
-st.caption("Email is active now. WhatsApp and Telegram are reserved for the next phase.")
+inject_global_css()
+render_sidebar()
+
+hero(
+    "Campaign Lab",
+    "Compare the two recovery voices before launching a batch.",
+    "Preview professional and friendly variants side by side, then queue unsent customers for background email recovery.",
+)
 
 if "previews" not in st.session_state:
     st.session_state.previews = []
 
-col_preview, col_launch = st.columns([1, 1])
-with col_preview:
-    if st.button("Generate A/B previews", type="secondary"):
+control_left, control_right = st.columns([1.2, 0.8])
+with control_left:
+    st.markdown(
+        """
+        <div class="rx-card-tight">
+            <h3>Campaign controls</h3>
+            <p>Use this when you want to send recovery emails to customers who are still new, cold, or previously failed.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    campaign_name = st.text_input("Campaign name", "Live E-commerce Recovery Campaign")
+with control_right:
+    st.markdown(
+        """
+        <div class="rx-card-tight">
+            <h3>Active channel</h3>
+            <p>Email is active. WhatsApp and Telegram links are available only as opt-in future-channel helpers.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+button_left, button_right = st.columns(2)
+with button_left:
+    if st.button("Generate A/B previews", type="secondary", width="stretch"):
         payload = {"campaign_name": campaign_name, "tone": "ab-test", "channel": "email"}
         try:
             response = requests.post(f"{API_URL}/generate-previews", json=payload, timeout=90)
@@ -26,8 +59,8 @@ with col_preview:
         except Exception as exc:
             st.error(f"Preview generation failed: {exc}")
 
-with col_launch:
-    if st.button("Queue campaign for unsent customers", type="primary"):
+with button_right:
+    if st.button("Queue campaign for unsent customers", type="primary", width="stretch"):
         payload = {"campaign_name": campaign_name, "tone": "ab-test", "channel": "email"}
         try:
             response = requests.post(f"{API_URL}/run-campaign", json=payload, timeout=30)
@@ -43,37 +76,62 @@ with col_launch:
 st.divider()
 
 if not st.session_state.previews:
-    st.info("Generate previews to compare how Variant A and Variant B will look.")
+    st.markdown(
+        """
+        <div class="rx-card">
+            <h3>No previews yet</h3>
+            <p>Generate previews to inspect the copy. This does not send anything.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 for preview in st.session_state.previews:
     lead = preview.get("lead", {})
-    title = f"{lead.get('name', '')} - {lead.get('product_viewed') or lead.get('product_interest', '')}"
-    with st.expander(title, expanded=False):
-        meta1, meta2, meta3 = st.columns(3)
+    product = lead.get("product_viewed") or lead.get("product_interest") or ""
+    with st.expander(f"{lead.get('name', '')} - {product}", expanded=False):
+        meta1, meta2, meta3, meta4 = st.columns(4)
         meta1.metric("Age", lead.get("age") or "NA")
         meta2.metric("Gender", lead.get("gender") or "NA")
         meta3.metric("State", lead.get("state") or "NA")
+        meta4.metric("Category", lead.get("product_category") or "NA")
 
         col_a, col_b = st.columns(2)
         with col_a:
-            st.subheader("Variant A: Professional")
-            st.text_input("Subject A", preview.get("variant_a", {}).get("subject", ""), disabled=True, key=f"subject_a_{lead.get('id')}")
+            variant = preview.get("variant_a", {})
+            st.markdown(
+                f"""
+                <div class="rx-card-tight">
+                    <h3>Variant A: Professional</h3>
+                    <p>{escape(variant.get('subject', ''))}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             st.text_area(
                 "Message A",
-                value=preview.get("variant_a", {}).get("message", ""),
+                value=variant.get("message", ""),
                 height=190,
                 disabled=True,
                 key=f"a_{lead.get('id')}",
             )
-            st.caption(f"LLM: {preview.get('variant_a', {}).get('llm_used', 'REVARX Local Template')}")
+            st.caption(f"LLM: {variant.get('llm_used', 'REVARX Local Template')}")
         with col_b:
-            st.subheader("Variant B: Friendly")
-            st.text_input("Subject B", preview.get("variant_b", {}).get("subject", ""), disabled=True, key=f"subject_b_{lead.get('id')}")
+            variant = preview.get("variant_b", {})
+            st.markdown(
+                f"""
+                <div class="rx-card-tight">
+                    <h3>Variant B: Friendly</h3>
+                    <p>{escape(variant.get('subject', ''))}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             st.text_area(
                 "Message B",
-                value=preview.get("variant_b", {}).get("message", ""),
+                value=variant.get("message", ""),
                 height=190,
                 disabled=True,
                 key=f"b_{lead.get('id')}",
             )
-            st.caption(f"LLM: {preview.get('variant_b', {}).get('llm_used', 'REVARX Local Template')}")
+            st.caption(f"LLM: {variant.get('llm_used', 'REVARX Local Template')}")

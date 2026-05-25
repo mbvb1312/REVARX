@@ -6,6 +6,8 @@ COLOR_GOOD = "#16A34A"
 COLOR_WARN = "#CA8A04"
 COLOR_BAD = "#DC2626"
 COLOR_MUTED = "#64748B"
+TEXT_COLOR = "#172033"
+GRID_COLOR = "rgba(100, 116, 139, 0.18)"
 
 
 def _layout(fig: go.Figure, height: int = 320) -> go.Figure:
@@ -14,11 +16,11 @@ def _layout(fig: go.Figure, height: int = 320) -> go.Figure:
         margin=dict(l=20, r=20, t=35, b=25),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=12, color="#E5E7EB"),
+        font=dict(family="Inter, sans-serif", size=12, color=TEXT_COLOR),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
-    fig.update_xaxes(gridcolor="rgba(148, 163, 184, 0.18)", zeroline=False)
-    fig.update_yaxes(gridcolor="rgba(148, 163, 184, 0.18)", zeroline=False)
+    fig.update_xaxes(gridcolor=GRID_COLOR, zeroline=False)
+    fig.update_yaxes(gridcolor=GRID_COLOR, zeroline=False)
     return fig
 
 

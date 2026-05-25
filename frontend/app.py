@@ -1,7 +1,15 @@
-import requests
+import sys
+from pathlib import Path
+
+import pandas as pd
 import streamlit as st
 
-API_URL = "http://localhost:8000"
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from frontend.components.charts import ab_bar_chart, funnel_chart, status_donut
+from frontend.components.ui import get_json, hero, inject_global_css, render_sidebar, status_label
 
 st.set_page_config(
     page_title="REVARX AI",
@@ -10,50 +18,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-    <style>
-    html, body, [class*="css"] { font-family: Inter, system-ui, sans-serif; }
-    .rx-panel {
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        border-radius: 8px;
-        padding: 16px;
-        background: rgba(15, 23, 42, 0.56);
-    }
-    .rx-kpi {
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        border-radius: 8px;
-        padding: 14px;
-        background: rgba(2, 6, 23, 0.38);
-        min-height: 118px;
-    }
-    .rx-kpi p { margin: 0; color: #94A3B8; font-size: 0.78rem; text-transform: uppercase; }
-    .rx-kpi h2 { margin: 6px 0 0 0; font-size: 1.85rem; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-with st.sidebar:
-    st.markdown("## REVARX AI")
-    st.caption("E-commerce recovery agent")
-    st.divider()
-    st.page_link("app.py", label="Executive Summary")
-    st.page_link("pages/01_upload.py", label="Live Demo: Add Customers")
-    st.page_link("pages/02_campaign.py", label="Recovery Campaigns")
-    st.page_link("pages/03_dashboard.py", label="Analytics")
-    st.page_link("pages/04_leads.py", label="Live Customer Board")
-
-
-def get_json(path: str, fallback):
-    try:
-        response = requests.get(f"{API_URL}{path}", timeout=3)
-        if response.ok:
-            return response.json(), False
-    except Exception:
-        pass
-    return fallback, True
-
+inject_global_css()
+render_sidebar()
 
 fallback_funnel = {
     "tracked": 50,
@@ -62,79 +28,128 @@ fallback_funnel = {
     "recovered": 10,
     "hot": 5,
     "reply_rate": 42.9,
+    "recovery_rate": 23.8,
     "estimated_revenue_recovered": 45000,
 }
-funnel, is_mock = get_json("/analytics/funnel", fallback_funnel)
+fallback_ab = {
+    "variant_a_rate": 18.2,
+    "variant_b_rate": 30.0,
+    "variant_a_sent": 22,
+    "variant_b_sent": 20,
+    "winner": "B",
+    "winner_label": "Friendly",
+}
+fallback_demographics = {
+    "status_counts": {
+        "pending": 12,
+        "hot": 5,
+        "warm": 5,
+        "cold": 5,
+        "no_response": 10,
+        "email_failed": 0,
+        "unsubscribed": 3,
+        "new": 10,
+        "total": 50,
+    }
+}
 
-st.title("REVARX AI")
-st.markdown("### E-commerce browse and cart abandonment recovery for small and medium businesses.")
+funnel, mock_funnel = get_json("/analytics/funnel", fallback_funnel)
+ab, _ = get_json("/analytics/ab", fallback_ab)
+demographics, _ = get_json("/analytics/demographics", fallback_demographics)
+leads, leads_mock = get_json("/leads", [])
 
-mode_col, summary_col = st.columns([1, 2])
-with mode_col:
-    st.markdown('<div class="rx-panel">', unsafe_allow_html=True)
-    st.subheader("Demo modes")
-    st.write("Mock mode shows seeded e-commerce customers and analytics.")
-    st.write("Live mode lets you upload customers or add one manually, then sends recovery emails.")
-    st.markdown("</div>", unsafe_allow_html=True)
-with summary_col:
-    st.markdown('<div class="rx-panel">', unsafe_allow_html=True)
-    st.subheader("The problem")
-    st.write(
-        "Businesses lose warm intent when shoppers click ads, view products, add to cart, or chat once and then disappear. "
-        "REVARX AI follows up with personalized email, tests professional vs friendly copy, tracks replies, and learns what works by demographic and product category."
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+hero(
+    "Overview",
+    "Recover abandoned shoppers before the intent goes cold.",
+    "REVARX AI sends personalized recovery emails, chooses the best A/B tone for each customer, tracks replies, and learns which style converts across demographics and product categories.",
+)
 
-if is_mock:
-    st.info("Backend is offline or not seeded yet, so this screen is showing mock recovery metrics.")
+if mock_funnel or leads_mock:
+    st.info("The backend is offline or still starting. Showing seeded-style fallback data where needed.")
+
+metric_cols = st.columns(5)
+metric_cols[0].metric("Tracked sessions", funnel.get("tracked", 0))
+metric_cols[1].metric("Emails sent", funnel.get("sent", 0))
+metric_cols[2].metric("Replies", funnel.get("replied", 0), f"{funnel.get('reply_rate', 0)}%")
+metric_cols[3].metric("Re-engaged", funnel.get("recovered", 0), f"{funnel.get('recovery_rate', 0)}%")
+metric_cols[4].metric("Revenue estimate", f"Rs {funnel.get('estimated_revenue_recovered', 0):,}")
+
+st.markdown("#### Recovery workflow")
+st.markdown(
+    """
+    <div class="rx-flow">
+        <div class="rx-flow-step"><strong>1. Capture intent</strong><span>Add one shopper or upload CSV/TXT abandoned sessions.</span></div>
+        <div class="rx-flow-step"><strong>2. Pick A/B tone</strong><span>Professional or friendly is selected from weighted history.</span></div>
+        <div class="rx-flow-step"><strong>3. Send email</strong><span>Groq, SambaNova, or fallback copy powers personalized recovery.</span></div>
+        <div class="rx-flow-step"><strong>4. Learn outcome</strong><span>Reply or no response updates future selection criteria.</span></div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.divider()
 
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.markdown(f'<div class="rx-kpi"><p>Abandoned sessions tracked</p><h2>{funnel.get("tracked", 0)}</h2></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown(f'<div class="rx-kpi"><p>Recovery emails sent</p><h2>{funnel.get("sent", 0)}</h2></div>', unsafe_allow_html=True)
-with col3:
-    st.markdown(f'<div class="rx-kpi"><p>Customers re-engaged</p><h2>{funnel.get("recovered", 0)}</h2></div>', unsafe_allow_html=True)
-with col4:
+chart_left, chart_right = st.columns([1.1, 0.9])
+with chart_left:
+    st.subheader("Recovery funnel")
+    st.plotly_chart(
+        funnel_chart(funnel.get("sent", 0), funnel.get("replied", 0), funnel.get("recovered", 0)),
+        width="stretch",
+    )
+with chart_right:
+    st.subheader("A/B winner")
+    st.plotly_chart(ab_bar_chart(ab.get("variant_a_rate", 0), ab.get("variant_b_rate", 0)), width="stretch")
     st.markdown(
-        f'<div class="rx-kpi"><p>Estimated revenue recovered</p><h2>Rs {funnel.get("estimated_revenue_recovered", 0):,}</h2></div>',
+        f"""
+        <div class="rx-note">
+            Current weighted winner: <strong>{ab.get('winner_label', 'Friendly')}</strong>.
+            A sent: {ab.get('variant_a_sent', 0)} | B sent: {ab.get('variant_b_sent', 0)}
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
+status_left, activity_right = st.columns([0.9, 1.1])
+with status_left:
+    st.subheader("Customer status mix")
+    st.plotly_chart(status_donut(demographics.get("status_counts", {})), width="stretch")
+with activity_right:
+    st.subheader("Recent recovery activity")
+    if leads:
+        recent = pd.DataFrame(leads[:8])
+        recent["product"] = recent.apply(
+            lambda row: row.get("product_viewed") or row.get("product_interest") or "",
+            axis=1,
+        )
+        recent["state_label"] = recent["status"].map(status_label)
+        display_cols = ["id", "name", "product", "state", "variant", "state_label"]
+        existing_cols = [col for col in display_cols if col in recent.columns]
+        st.dataframe(recent[existing_cols], width="stretch", hide_index=True)
+    else:
+        st.warning("No customers found. Seed data or add a customer in Recovery Studio.")
+
 st.divider()
 
-st.subheader("Live reply simulator")
-st.caption("Use this after sending a live or seeded recovery email to update the customer status and A/B learning history.")
-
-leads, leads_mock = get_json("/leads", [],)
-if leads:
-    lead_map = {f"{lead['id']} - {lead['name']} - {lead.get('product_viewed') or lead.get('product_interest')}": lead["id"] for lead in leads}
-    selected = st.selectbox("Customer", list(lead_map.keys()))
-    preset = st.selectbox(
-        "Reply",
-        [
-            "Yes, is there a discount available if I buy today?",
-            "Maybe next week. Please remind me again.",
-            "Already bought from Amazon.",
-            "Stop emailing me.",
-            "Type my own reply",
-        ],
+cta_left, cta_right = st.columns(2)
+with cta_left:
+    st.markdown(
+        """
+        <div class="rx-card">
+            <h3>Run a live test</h3>
+            <p>Add one customer, send the recovery email, then simulate their reply in the same workspace.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    reply_text = st.text_area("Custom reply", "" if preset != "Type my own reply" else "Can you send the checkout link again?")
-    content = reply_text if preset == "Type my own reply" else preset
-
-    if st.button("Simulate reply", type="primary"):
-        payload = {"lead_id": lead_map[selected], "content": content, "is_voice_note": False}
-        try:
-            response = requests.post(f"{API_URL}/simulate-reply", json=payload, timeout=20)
-            if response.ok:
-                data = response.json()
-                st.success(f"Reply classified as {data.get('reply_classification')} using {data.get('classifier_llm_used')}.")
-            else:
-                st.error(response.text)
-        except Exception as exc:
-            st.error(f"Could not reach API: {exc}")
-else:
-    st.warning("No live customers available yet. Seed data or add a customer from the Live Demo page.")
+    st.page_link("pages/01_upload.py", label="Open Recovery Studio")
+with cta_right:
+    st.markdown(
+        """
+        <div class="rx-card">
+            <h3>Watch the learning loop</h3>
+            <p>Review demographic charts and see which tone wins by age, gender, state, and product category.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.page_link("pages/03_dashboard.py", label="Open Analytics")
